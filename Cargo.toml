@@ -9,7 +9,7 @@ Currently includes Hamming, Levenshtein, Jaro, and Jaro-Winkler.
 """
 license = "MIT"
 readme = "README.md"
-keywords = ["string", "str", "similarity", "Hamming", 
-            "Levenshtein", "Jaro", "Jaro-Winkler"]
+keywords = ["string", "similarity", "Hamming", 
+            "Levenshtein", "Jaro-Winkler"]
 homepage = "https://github.com/dguo/strsim-rs"
 repository = "https://github.com/dguo/strsim-rs"
