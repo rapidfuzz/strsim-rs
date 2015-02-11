@@ -1,3 +1,7 @@
+
+//! This library implements string similarity metrics. Currently includes
+//! Hamming, Levenshtein, Jaro, and Jaro-Winkler.
+
 #![feature(test, core, collections)]
 
 extern crate test;
@@ -5,13 +9,17 @@ extern crate test;
 use std::cmp::{max, min};
 use std::collections::Bitv;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq)]
 pub enum StrSimError {
     DifferentLengthArgs
 }
 
 pub type HammingResult = Result<usize, StrSimError>;
 
+#[doc = "
+Calculates the number of positions in the two strings where the characters
+differ. Returns an error if the strings have different lengths.
+"]
 pub fn hamming(a: &str, b: &str) -> HammingResult {
     if a.len() != b.len() {
         Err(StrSimError::DifferentLengthArgs)
@@ -23,6 +31,10 @@ pub fn hamming(a: &str, b: &str) -> HammingResult {
     }
 }
 
+#[doc = "
+Calculates the Jaro similarity between two strings. The returned value 
+is between 0.0 and 1.0 (where 1.0 means the strings are equal).
+"]
 pub fn jaro(a: &str, b: &str) -> f64 {
     if a == b { return 1.0; }
     if a.len() == 0 || b.len() == 0 { return 0.0; }
@@ -70,6 +82,9 @@ pub fn jaro(a: &str, b: &str) -> f64 {
     }
 }
 
+#[doc = "
+Similar to Jaro but gives a boost to strings that have a common prefix.
+"]
 pub fn jaro_winkler(a: &str, b: &str) -> f64 {
     let jaro_distance = jaro(a, b);
 
@@ -89,6 +104,11 @@ pub fn jaro_winkler(a: &str, b: &str) -> f64 {
     }
 }
 
+
+#[doc = "
+Calculates the minimum number of insertions, deletions, and substitutions
+required to change one string into the other.
+"]
 pub fn levenshtein(a: &str, b: &str) -> usize {
     if a == b { return 0; }
     else if a.len() == 0 { return b.len(); }
