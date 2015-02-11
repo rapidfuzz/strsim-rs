@@ -70,16 +70,23 @@ pub fn jaro(a: &str, b: &str) -> f64 {
     }
 }
 
-// Does not limit the length of the common prefix
 pub fn jaro_winkler(a: &str, b: &str) -> f64 {
     let jaro_distance = jaro(a, b);
 
-    let prefix = a.chars()
-                  .zip(b.chars())
-                  .take_while(|&(a_char, b_char)| a_char == b_char)
-                  .count();
+    // Don't limit the length of the common prefix
+    let prefix_length = a.chars()
+                         .zip(b.chars())
+                         .take_while(|&(a_char, b_char)| a_char == b_char)
+                         .count();
 
-    jaro_distance + (0.1 * prefix as f64 * (1.0 - jaro_distance))
+    let jaro_winkler_distance =
+        jaro_distance + (0.1 * prefix_length as f64 * (1.0 - jaro_distance));
+
+    if jaro_winkler_distance <= 1.0 {
+        jaro_winkler_distance
+    } else {
+        1.0
+    }
 }
 
 pub fn levenshtein(a: &str, b: &str) -> usize {
@@ -115,6 +122,7 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
 mod tests {
     use super::*;
     use test::Bencher;
+    use std::num::Float;
 
     #[test]
     fn hamming_empty() {
@@ -178,23 +186,23 @@ mod tests {
 
     #[test]
     fn jaro_diff_short() {
-        assert!(0.767 - jaro("dixon", "dicksonx") < 0.001);
+        assert!((0.767 - jaro("dixon", "dicksonx")).abs() < 0.001);
     }
 
     #[test]
     fn jaro_diff_no_transposition() {
-        assert!(0.822 - jaro("dwayne", "duane") < 0.001);
+        assert!((0.822 - jaro("dwayne", "duane")).abs() < 0.001);
     }
 
     #[test]
     fn jaro_diff_with_transposition() {
-        assert!(0.944 - jaro("martha", "marhta") < 0.001);
+        assert!((0.944 - jaro("martha", "marhta")).abs() < 0.001);
     }
 
     #[test]
     fn jaro_names() {
         assert!((0.392 - jaro("Friedrich Nietzsche",
-                              "Jean-Paul Sartre")) < 0.001);
+                              "Jean-Paul Sartre")).abs() < 0.001);
     }
 
     #[test]
@@ -219,45 +227,47 @@ mod tests {
 
     #[test]
     fn jaro_winkler_diff_short() {
-        assert!(0.813 - jaro_winkler("dixon", "dicksonx") < 0.001);
-        assert!(0.813 - jaro_winkler("dicksonx", "dixon") < 0.001);
+        assert!((0.813 - jaro_winkler("dixon", "dicksonx")).abs() < 0.001);
+        assert!((0.813 - jaro_winkler("dicksonx", "dixon")).abs() < 0.001);
     }
 
     #[test]
     fn jaro_winkler_diff_no_transposition() {
-        assert!(0.840 - jaro_winkler("dwayne", "duane") < 0.001);
+        assert!((0.840 - jaro_winkler("dwayne", "duane")).abs() < 0.001);
     }
 
     #[test]
     fn jaro_winkler_diff_with_transposition() {
-        assert!(0.961 - jaro_winkler("martha", "marhta") < 0.001);
+        assert!((0.961 - jaro_winkler("martha", "marhta")).abs() < 0.001);
     }
 
     #[test]
     fn jaro_winkler_names() {
         assert!((0.562 - jaro_winkler("Friedrich Nietzsche",
-                                      "Fran-Paul Sartre")) < 0.001);
+                                      "Fran-Paul Sartre")).abs() < 0.001);
     }
 
     #[test]
     fn jaro_winkler_long_prefix() {
-        assert!(0.911 - jaro_winkler("cheeseburger", "cheese fries") < 0.001);
+        assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() <
+                0.001);
     }
 
     #[test]
     fn jaro_winkler_more_names() {
-        assert!(0.868 - jaro_winkler("Thorkel", "Thorgier") < 0.001);
+        assert!((0.868 - jaro_winkler("Thorkel", "Thorgier")).abs() < 0.001);
     }
 
     #[test]
     fn jaro_winkler_length_of_one() {
-        assert!(0.738 - jaro_winkler("Dinsdale", "D") < 0.001);
+        assert!((0.738 - jaro_winkler("Dinsdale", "D")).abs() < 0.001);
     }
 
     #[test]
     fn jaro_winkler_very_long_prefix() {
-        assert!(1.0 - jaro_winkler("thequickbrownfoxjumpedoverx",
-                                   "thequickbrownfoxjumpedovery") < 0.001);
+        assert!((1.0 - jaro_winkler("thequickbrownfoxjumpedoverx",
+                                    "thequickbrownfoxjumpedovery")).abs() < 
+                0.001);
     }
 
     #[test]

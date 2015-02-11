@@ -19,6 +19,7 @@ strsim = "0.1.0"
 extern crate strsim;
 
 use strsim::{hamming, levenshtein, jaro, jaro_winkler};
+use std::num::Float;
 
 fn main() {
     match hamming("hamming", "hammers") {
@@ -28,9 +29,11 @@ fn main() {
     
     assert_eq!(3, levenshtein("kitten", "sitting"));
 
-    assert!(0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre") < 0.001);
+    assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() < 
+            0.001);
     
-    assert!(0.911 - jaro_winkler("cheeseburger", "cheese fries") < 0.001);
+    assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() < 
+            0.001);
 }
 ```
 
