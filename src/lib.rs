@@ -16,10 +16,17 @@ pub enum StrSimError {
 
 pub type HammingResult = Result<usize, StrSimError>;
 
-#[doc = "
-Calculates the number of positions in the two strings where the characters
-differ. Returns an error if the strings have different lengths.
-"]
+/// Calculates the number of positions in the two strings where the characters
+/// differ. Returns an error if the strings have different lengths.
+///
+/// ```
+/// use strsim::hamming;
+///
+/// match hamming("hamming", "hammers") {
+///     Ok(distance) => assert_eq!(3, distance),
+///     Err(why) => panic!("{:?}", why)
+/// }
+/// ```
 pub fn hamming(a: &str, b: &str) -> HammingResult {
     if a.len() != b.len() {
         Err(StrSimError::DifferentLengthArgs)
@@ -31,10 +38,16 @@ pub fn hamming(a: &str, b: &str) -> HammingResult {
     }
 }
 
-#[doc = "
-Calculates the Jaro similarity between two strings. The returned value 
-is between 0.0 and 1.0 (where 1.0 means the strings are equal).
-"]
+/// Calculates the Jaro similarity between two strings. The returned value
+/// is between 0.0 and 1.0 (higher value means more similar).
+///
+/// ```
+/// use strsim::jaro;
+/// use std::num::Float;
+///
+/// assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() <
+///         0.001);
+/// ```
 pub fn jaro(a: &str, b: &str) -> f64 {
     if a == b { return 1.0; }
     if a.len() == 0 || b.len() == 0 { return 0.0; }
@@ -82,9 +95,15 @@ pub fn jaro(a: &str, b: &str) -> f64 {
     }
 }
 
-#[doc = "
-Similar to Jaro but gives a boost to strings that have a common prefix.
-"]
+/// Like Jaro but gives a boost to strings that have a common prefix.
+///
+/// ```
+/// use strsim::jaro_winkler;
+/// use std::num::Float;
+///
+/// assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() <
+///         0.001);
+/// ```
 pub fn jaro_winkler(a: &str, b: &str) -> f64 {
     let jaro_distance = jaro(a, b);
 
@@ -104,11 +123,14 @@ pub fn jaro_winkler(a: &str, b: &str) -> f64 {
     }
 }
 
-
-#[doc = "
-Calculates the minimum number of insertions, deletions, and substitutions
-required to change one string into the other.
-"]
+/// Calculates the minimum number of insertions, deletions, and substitutions
+/// required to change one string into the other.
+///
+/// ```
+/// use strsim::levenshtein;
+///
+/// assert_eq!(3, levenshtein("kitten", "sitting"));
+/// ```
 pub fn levenshtein(a: &str, b: &str) -> usize {
     if a == b { return 0; }
     else if a.len() == 0 { return b.len(); }
