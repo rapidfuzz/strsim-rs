@@ -1,15 +1,15 @@
 [package]
 
 name = "strsim"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["Danny Guo <dannyguo91@gmail.com>"]
 description = """
 Implementations of string similarity metrics.
-Currently includes Hamming, Levenshtein, Jaro, and Jaro-Winkler.
+Includes Hamming, Levenshtein, Damerau-Levenshtein, Jaro, and Jaro-Winkler.
 """
 license = "MIT"
 readme = "README.md"
 keywords = ["string", "similarity", "Hamming", 
-            "Levenshtein", "Jaro-Winkler"]
+            "Levenshtein", "Jaro"]
 homepage = "https://github.com/dguo/strsim-rs"
 repository = "https://github.com/dguo/strsim-rs"

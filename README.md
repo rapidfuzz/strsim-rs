@@ -1,16 +1,16 @@
 # strsim-rs [![Build Status](https://travis-ci.org/dguo/strsim-rs.svg?branch=master)](https://travis-ci.org/dguo/strsim-rs)
 
-Rust implementations of [string similarity metrics]. Best efforts will be made to stay up-to-date with Rust nightly. Currently includes:
+Rust implementations of [string similarity metrics]. Best efforts will be made to stay up-to-date with Rust nightly. Includes:
   - [Hamming]
-  - [Levenshtein]
-  - [Jaro and Jaro-Winkler] - this implementation does not limit the common prefix length
+  - [Levenshtein] and [Damerau-Levenshtein]
+  - [Jaro and Jaro-Winkler] - this implementation of Jaro-Winkler does not limit the common prefix length
 
 ### Installation
 
 ```toml
 # Cargo.toml
 [dependencies]
-strsim = "0.1.1"
+strsim = "0.2.0"
 ```
 
 ### Usage
@@ -18,7 +18,7 @@ strsim = "0.1.1"
 ```rust
 extern crate strsim;
 
-use strsim::{hamming, levenshtein, jaro, jaro_winkler};
+use strsim::{hamming, levenshtein, damerau_levenshtein, jaro, jaro_winkler};
 use std::num::Float;
 
 fn main() {
@@ -29,6 +29,8 @@ fn main() {
     
     assert_eq!(3, levenshtein("kitten", "sitting"));
 
+    assert_eq!(1, damerau_levenshtein("specter", "spectre"));
+
     assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() < 
             0.001);
     
@@ -37,13 +39,9 @@ fn main() {
 }
 ```
 
-### Todo's
-
- - Implement [Damerau-Levenshtein]
- 
 ### Version
 
-0.1.1
+0.2.0
 
 ### License
 

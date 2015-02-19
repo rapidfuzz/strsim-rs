@@ -160,6 +160,52 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
     curr_distances[b.len()]
 }
 
+/// Same as Levenshtein but allows for adjacent transpositions.
+///
+///
+/// ```
+/// use strsim::damerau_levenshtein;
+///
+/// assert_eq!(3, damerau_levenshtein("damerau", "aderua"));
+/// ```
+pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
+    if a == b { return 0; }
+    else if a.len() == 0 { return b.len(); }
+    else if b.len() == 0 { return a.len(); }
+
+    let mut prev_two_distances: Vec<usize> = Vec::with_capacity(b.len() + 1);
+    let mut prev_distances: Vec<usize> = Vec::with_capacity(b.len() + 1);
+    let mut curr_distances: Vec<usize> = Vec::with_capacity(b.len() + 1);
+
+    for i in 0..(b.len() + 1) {
+        prev_two_distances.push(i);
+        prev_distances.push(i);
+        curr_distances.push(0);
+    }
+
+    for (i, a_char) in a.chars().enumerate() {
+        curr_distances[0] = i + 1;
+
+        for (j, b_char) in b.chars().enumerate() {
+            let cost = if a_char == b_char { 0 } else { 1 };
+            curr_distances[j + 1] = min(curr_distances[j] + 1,
+                                        min(prev_distances[j + 1] + 1,
+                                            prev_distances[j] + cost));
+            if i > 0 && j > 0 && a_char != b_char &&
+               a_char == b.char_at(j - 1) &&
+               b_char == a.char_at(i - 1) {
+                curr_distances[j + 1] = min(curr_distances[j + 1],
+                                            prev_two_distances[j - 1] + 1);
+            }
+        }
+
+        prev_two_distances.clone_from(&prev_distances);
+        prev_distances.clone_from(&curr_distances);
+    }
+
+    curr_distances[b.len()]
+ }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -171,7 +217,7 @@ mod tests {
         match hamming("", "") {
             Ok(distance) => { assert_eq!(0, distance); },
             Err(why) => { panic!("{:?}", why); }
-        } 
+        }
     }
 
     #[test]
@@ -349,6 +395,73 @@ mod tests {
         assert_eq!(6, levenshtein("kitten", ""));
     }
 
+    #[test]
+    fn damerau_levenshtein_empty() {
+        assert_eq!(0, damerau_levenshtein("", ""));
+    }
+
+    #[test]
+    fn damerau_levenshtein_same() {
+        assert_eq!(0, damerau_levenshtein("damerau", "damerau"));
+    }
+
+    #[test]
+    fn damerau_levenshtein_first_empty() {
+        assert_eq!(7, damerau_levenshtein("", "damerau"));
+    }
+
+    #[test]
+    fn damerau_levenshtein_second_empty() {
+        assert_eq!(7, damerau_levenshtein("damerau", ""));
+    }
+
+    #[test]
+    fn damerau_levenshtein_diff_short() {
+        assert_eq!(3, damerau_levenshtein("damerau", "aderua"));
+    }
+
+    #[test]
+    fn damerau_levenshtein_diff_reversed() {
+        assert_eq!(3, damerau_levenshtein("aderua", "damerau"));
+    }
+
+    #[test]
+    fn damerau_levenshtein_diff_unequal_length() {
+        assert_eq!(6, damerau_levenshtein("damerau", "aderuaxyz"));
+    }
+
+    #[test]
+    fn damerau_levenshtein_diff_unequal_length_reversed() {
+        assert_eq!(6, damerau_levenshtein("aderuaxyz", "damerau"));
+    }
+
+    #[test]
+    fn damerau_levenshtein_diff_comedians() {
+        assert_eq!(5, damerau_levenshtein("Stewart", "Colbert"));
+    }
+
+    #[test]
+    fn damerau_levenshtein_many_transpositions() {
+        assert_eq!(4, damerau_levenshtein("abcdefghijkl", "bacedfgihjlk"));
+    }
+
+    #[test]
+    fn damerau_levenshtein_diff_longer() {
+        let a = "The quick brown fox jumped over the angry dog.";
+        let b = "Lehem ipsum dolor sit amet, dicta latine an eam.";
+        assert_eq!(36, damerau_levenshtein(a, b));
+    }
+
+    #[test]
+    fn damerau_levenshtein_beginning_transposition() {
+        assert_eq!(1, damerau_levenshtein("foobar", "ofobar"));
+    }
+
+    #[test]
+    fn damerau_levenshtein_end_transposition() {
+        assert_eq!(1, damerau_levenshtein("specter", "spectre"));
+    }
+
     #[bench]
     fn bench_hamming(b: &mut Bencher) {
         b.iter(|| hamming("Friedrich Nietzs", "Jean-Paul Sartre"));
@@ -360,7 +473,18 @@ mod tests {
     }
 
     #[bench]
+    fn bench_damerau_levenshtein(b: &mut Bencher) {
+        b.iter(|| damerau_levenshtein("Friedrich Nietzsche",
+                                      "Jirn-Paul Satere"));
+    }
+
+    #[bench]
     fn bench_jaro(b: &mut Bencher) {
         b.iter(|| jaro("Friedrich Nietzsche", "Jean-Paul Sartre"));
+    }
+
+    #[bench]
+    fn bench_jaro_winkler(b: &mut Bencher) {
+        b.iter(|| jaro_winkler("Friedrich Nietzsche", "Fran-Paul Sartre"));
     }
 }

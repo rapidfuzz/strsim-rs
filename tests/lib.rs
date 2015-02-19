@@ -1,6 +1,6 @@
 extern crate strsim;
 
-use strsim::{hamming, levenshtein, jaro, jaro_winkler};
+use strsim::{hamming, levenshtein, damerau_levenshtein, jaro, jaro_winkler};
 use std::num::Float;
 
 #[test]
@@ -14,6 +14,11 @@ fn hamming_works() {
 #[test]
 fn levenshtein_works() {
     assert_eq!(3, levenshtein("kitten", "sitting"));
+}
+
+#[test]
+fn damerau_levenshtein_works() {
+    assert_eq!(3, damerau_levenshtein("damerau", "aderua"));
 }
 
 #[test]
