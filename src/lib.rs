@@ -7,7 +7,7 @@
 extern crate test;
 
 use std::cmp::{max, min};
-use std::collections::Bitv;
+use std::collections::bit_vec::BitVec;
 
 #[derive(Debug, PartialEq)]
 pub enum StrSimError {
@@ -54,7 +54,7 @@ pub fn jaro(a: &str, b: &str) -> f64 {
 
     let search_range = max(0, (max(a.len(), b.len()) / 2) - 1);
     
-    let mut b_consumed = Bitv::from_elem(b.len(), false);
+    let mut b_consumed = BitVec::from_elem(b.len(), false);
     let mut matches = 0.0;
 
     let mut transpositions = 0.0;
