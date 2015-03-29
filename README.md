@@ -10,7 +10,7 @@ Rust implementations of [string similarity metrics]. Best efforts will be made t
 ```toml
 # Cargo.toml
 [dependencies]
-strsim = "0.2.1"
+strsim = "0.2.2"
 ```
 
 ### Usage
@@ -26,22 +26,22 @@ fn main() {
         Ok(distance) => assert_eq!(3, distance),
         Err(why) => panic!("{:?}", why)
     }
-    
+
     assert_eq!(3, levenshtein("kitten", "sitting"));
 
     assert_eq!(1, damerau_levenshtein("specter", "spectre"));
 
-    assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() < 
+    assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() <
             0.001);
-    
-    assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() < 
+
+    assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() <
             0.001);
 }
 ```
 
 ### Version
 
-0.2.1
+0.2.2
 
 ### License
 

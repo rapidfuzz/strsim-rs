@@ -6,6 +6,7 @@
 
 extern crate test;
 
+use std::char;
 use std::cmp::{max, min};
 use std::collections::bit_vec::BitVec;
 
@@ -53,7 +54,7 @@ pub fn jaro(a: &str, b: &str) -> f64 {
     if a.len() == 0 || b.len() == 0 { return 0.0; }
 
     let search_range = max(0, (max(a.len(), b.len()) / 2) - 1);
-    
+
     let mut b_consumed = BitVec::from_elem(b.len(), false);
     let mut matches = 0.0;
 
@@ -61,25 +62,32 @@ pub fn jaro(a: &str, b: &str) -> f64 {
     let mut b_match_index = 0;
 
     for (i, a_char) in a.chars().enumerate() {
-        let min_bound = 
+        let min_bound =
             // prevent integer wrapping
             if i > search_range {
                 max(0, i - search_range)
             } else {
                 0
             };
+
         let max_bound = min(b.len() - 1, i + search_range);
 
-        for j in min_bound..max_bound + 1 {
-            let b_char = b.char_at(j);
-            if a_char == b_char && !b_consumed[j] {
-                b_consumed.set(j, true);
+        if min_bound > max_bound {
+            continue;
+        }
+
+        for (j, b_char) in b.slice_chars(min_bound, max_bound + 1)
+                            .chars()
+                            .enumerate() {
+            let index = j + min_bound;
+            if a_char == b_char && !b_consumed[index] {
+                b_consumed.set(index, true);
                 matches += 1.0;
 
-                if j < b_match_index {
+                if index < b_match_index {
                     transpositions += 1.0;
                 }
-                b_match_index = j;
+                b_match_index = index;
 
                 break;
             }
@@ -139,8 +147,8 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
     let mut prev_distances: Vec<usize> = Vec::with_capacity(b.len() + 1);
     let mut curr_distances: Vec<usize> = Vec::with_capacity(b.len() + 1);
 
-    for i in 0..(b.len() + 1) { 
-        prev_distances.push(i); 
+    for i in 0..(b.len() + 1) {
+        prev_distances.push(i);
         curr_distances.push(0);
     }
 
@@ -177,6 +185,9 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
     let mut prev_distances: Vec<usize> = Vec::with_capacity(b.len() + 1);
     let mut curr_distances: Vec<usize> = Vec::with_capacity(b.len() + 1);
 
+    let mut prev_a_char = char::MAX;
+    let mut prev_b_char = char::MAX;
+
     for i in 0..(b.len() + 1) {
         prev_two_distances.push(i);
         prev_distances.push(i);
@@ -192,15 +203,17 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
                                         min(prev_distances[j + 1] + 1,
                                             prev_distances[j] + cost));
             if i > 0 && j > 0 && a_char != b_char &&
-               a_char == b.char_at(j - 1) &&
-               b_char == a.char_at(i - 1) {
+               a_char == prev_b_char && b_char == prev_a_char {
                 curr_distances[j + 1] = min(curr_distances[j + 1],
                                             prev_two_distances[j - 1] + 1);
             }
+
+            prev_b_char = b_char;
         }
 
         prev_two_distances.clone_from(&prev_distances);
         prev_distances.clone_from(&curr_distances);
+        prev_a_char = a_char;
     }
 
     curr_distances[b.len()]
@@ -254,7 +267,7 @@ mod tests {
 
     #[test]
     fn jaro_both_empty() {
-       assert_eq!(1.0, jaro("", "")); 
+       assert_eq!(1.0, jaro("", ""));
     }
 
     #[test]
@@ -354,7 +367,7 @@ mod tests {
     #[test]
     fn jaro_winkler_very_long_prefix() {
         assert!((1.0 - jaro_winkler("thequickbrownfoxjumpedoverx",
-                                    "thequickbrownfoxjumpedovery")).abs() < 
+                                    "thequickbrownfoxjumpedovery")).abs() <
                 0.001);
     }
 
