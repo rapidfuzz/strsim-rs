@@ -1,7 +1,6 @@
 extern crate strsim;
 
 use strsim::{hamming, levenshtein, damerau_levenshtein, jaro, jaro_winkler};
-use std::num::Float;
 
 #[test]
 fn hamming_works() {
@@ -23,12 +22,12 @@ fn damerau_levenshtein_works() {
 
 #[test]
 fn jaro_works() {
-    assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() < 
+    assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() <
             0.001);
 }
 
 #[test]
 fn jaro_winkler_works() {
-    assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() < 
+    assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() <
             0.001);
 }

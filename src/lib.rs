@@ -223,7 +223,6 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
 mod tests {
     use super::*;
     use test::Bencher;
-    use std::num::Float;
 
     #[test]
     fn hamming_empty() {

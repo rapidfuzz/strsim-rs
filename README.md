@@ -10,7 +10,7 @@ Rust implementations of [string similarity metrics]. Best efforts will be made t
 ```toml
 # Cargo.toml
 [dependencies]
-strsim = "0.2.2"
+strsim = "0.2.3"
 ```
 
 ### Usage
@@ -19,7 +19,6 @@ strsim = "0.2.2"
 extern crate strsim;
 
 use strsim::{hamming, levenshtein, damerau_levenshtein, jaro, jaro_winkler};
-use std::num::Float;
 
 fn main() {
     match hamming("hamming", "hammers") {
@@ -41,7 +40,7 @@ fn main() {
 
 ### Version
 
-0.2.2
+0.2.3
 
 ### License
 
