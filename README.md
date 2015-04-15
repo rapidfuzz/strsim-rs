@@ -10,7 +10,7 @@ Rust implementations of [string similarity metrics]. Best efforts will be made t
 ```toml
 # Cargo.toml
 [dependencies]
-strsim = "0.2.3"
+strsim = "0.2.4"
 ```
 
 ### Usage
@@ -40,7 +40,7 @@ fn main() {
 
 ### Version
 
-0.2.3
+0.2.4
 
 ### License
 

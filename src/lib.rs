@@ -2,7 +2,7 @@
 //! This library implements string similarity metrics. Currently includes
 //! Hamming, Levenshtein, Jaro, and Jaro-Winkler.
 
-#![feature(test, core, collections)]
+#![feature(test, collections)]
 
 extern crate test;
 
