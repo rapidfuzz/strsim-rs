@@ -44,7 +44,6 @@ pub fn hamming(a: &str, b: &str) -> HammingResult {
 ///
 /// ```
 /// use strsim::jaro;
-/// use std::num::Float;
 ///
 /// assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() <
 ///         0.001);
@@ -107,7 +106,6 @@ pub fn jaro(a: &str, b: &str) -> f64 {
 ///
 /// ```
 /// use strsim::jaro_winkler;
-/// use std::num::Float;
 ///
 /// assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() <
 ///         0.001);
