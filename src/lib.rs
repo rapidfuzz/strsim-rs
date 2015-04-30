@@ -2,13 +2,8 @@
 //! This library implements string similarity metrics. Currently includes
 //! Hamming, Levenshtein, Jaro, and Jaro-Winkler.
 
-#![feature(test, collections)]
-
-extern crate test;
-
 use std::char;
 use std::cmp::{max, min};
-use std::collections::bit_vec::BitVec;
 
 #[derive(Debug, PartialEq)]
 pub enum StrSimError {
@@ -54,7 +49,10 @@ pub fn jaro(a: &str, b: &str) -> f64 {
 
     let search_range = max(0, (max(a.len(), b.len()) / 2) - 1);
 
-    let mut b_consumed = BitVec::from_elem(b.len(), false);
+    let mut b_consumed = Vec::with_capacity(b.len());
+    for _ in 0..b.len() {
+        b_consumed.push(false);
+    }
     let mut matches = 0.0;
 
     let mut transpositions = 0.0;
@@ -75,20 +73,19 @@ pub fn jaro(a: &str, b: &str) -> f64 {
             continue;
         }
 
-        for (j, b_char) in b.slice_chars(min_bound, max_bound + 1)
-                            .chars()
-                            .enumerate() {
-            let index = j + min_bound;
-            if a_char == b_char && !b_consumed[index] {
-                b_consumed.set(index, true);
-                matches += 1.0;
+        for (j, b_char) in b.chars().enumerate() {
+            if min_bound <= j && j <= max_bound {
+                if a_char == b_char && !b_consumed[j] {
+                    b_consumed[j] = true;
+                    matches += 1.0;
 
-                if index < b_match_index {
-                    transpositions += 1.0;
+                    if j < b_match_index {
+                        transpositions += 1.0;
+                    }
+                    b_match_index = j;
+
+                    break;
                 }
-                b_match_index = index;
-
-                break;
             }
         }
     }
@@ -168,7 +165,6 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
 
 /// Same as Levenshtein but allows for adjacent transpositions.
 ///
-///
 /// ```
 /// use strsim::damerau_levenshtein;
 ///
@@ -220,7 +216,7 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use test::Bencher;
+    // use test::Bencher;
 
     #[test]
     fn hamming_empty() {
@@ -470,31 +466,5 @@ mod tests {
     #[test]
     fn damerau_levenshtein_end_transposition() {
         assert_eq!(1, damerau_levenshtein("specter", "spectre"));
-    }
-
-    #[bench]
-    fn bench_hamming(b: &mut Bencher) {
-        b.iter(|| hamming("Friedrich Nietzs", "Jean-Paul Sartre"));
-    }
-
-    #[bench]
-    fn bench_levenshtein(b: &mut Bencher) {
-        b.iter(|| levenshtein("Friedrich Nietzsche", "Jean-Paul Sartre"));
-    }
-
-    #[bench]
-    fn bench_damerau_levenshtein(b: &mut Bencher) {
-        b.iter(|| damerau_levenshtein("Friedrich Nietzsche",
-                                      "Jirn-Paul Satere"));
-    }
-
-    #[bench]
-    fn bench_jaro(b: &mut Bencher) {
-        b.iter(|| jaro("Friedrich Nietzsche", "Jean-Paul Sartre"));
-    }
-
-    #[bench]
-    fn bench_jaro_winkler(b: &mut Bencher) {
-        b.iter(|| jaro_winkler("Friedrich Nietzsche", "Fran-Paul Sartre"));
     }
 }

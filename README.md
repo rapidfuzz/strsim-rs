@@ -1,6 +1,6 @@
 # strsim-rs [![Build Status](https://travis-ci.org/dguo/strsim-rs.svg?branch=master)](https://travis-ci.org/dguo/strsim-rs)
 
-Rust implementations of [string similarity metrics]. Best efforts will be made to stay up-to-date with Rust nightly. Includes:
+Rust implementations of [string similarity metrics]. Should compile cleanly on both the nightly and beta versions of Rust. Includes:
   - [Hamming]
   - [Levenshtein] and [Damerau-Levenshtein]
   - [Jaro and Jaro-Winkler] - this implementation of Jaro-Winkler does not limit the common prefix length
@@ -10,7 +10,7 @@ Rust implementations of [string similarity metrics]. Best efforts will be made t
 ```toml
 # Cargo.toml
 [dependencies]
-strsim = "0.2.5"
+strsim = "0.3.0"
 ```
 
 ### Usage
@@ -37,10 +37,6 @@ fn main() {
             0.001);
 }
 ```
-
-### Version
-
-0.2.5
 
 ### License
 
