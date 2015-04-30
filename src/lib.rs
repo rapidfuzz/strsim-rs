@@ -216,7 +216,6 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
-    // use test::Bencher;
 
     #[test]
     fn hamming_empty() {
