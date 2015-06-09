@@ -99,6 +99,27 @@ pub fn jaro(a: &str, b: &str) -> f64 {
     }
 }
 
+/// Calculates the Jaro similarities between a string and a vector of strings. The returned value is a vector of values
+/// between 0.0 and 1.0 (higher value means more similar).
+///
+/// ```
+/// use strsim::jaro_against_vec;
+///
+/// let v = vec!["test","test1","test12","test123","","tset"];
+/// let res = jaro_against_vec("test",&v);
+/// let expected = vec![1.0, 0.933333, 0.888889, 0.857143, 0.0, 0.916667];
+/// let delta: f64 = res.iter().zip(expected.iter()).map(|(x,y)| (x-y).abs() as f64 ).fold(0.0, |x,y| x+y as f64);
+/// assert_eq!(true, (delta.abs() < 0.0001) );
+/// ```
+pub fn jaro_against_vec(a: &str, v: &Vec<&str>) -> Vec<f64> {
+  let mut r: Vec<f64> = Vec::with_capacity(v.len()+1);
+  for b in v.iter() {
+    r.push( jaro(a,b) );
+  } 
+  return r;
+}
+
+
 /// Like Jaro but gives a boost to strings that have a common prefix.
 ///
 /// ```
@@ -124,6 +145,25 @@ pub fn jaro_winkler(a: &str, b: &str) -> f64 {
     } else {
         1.0
     }
+}
+
+/// Like Jaro but gives a boost to strings that have a common prefix.
+///
+/// ```
+/// use strsim::jaro_winkler_against_vec;
+///
+/// let v = vec!["test","test1","test12","test123","","tset"];
+/// let res = jaro_winkler_against_vec("test",&v);
+/// let expected = vec![1.0, 0.96, 0.933333, 0.914286, 0.0, 0.925];
+/// let delta: f64 = res.iter().zip(expected.iter()).map(|(x,y)| (x-y).abs() as f64 ).fold(0.0, |x,y| x+y as f64);
+/// assert_eq!(true, (delta.abs() < 0.0001) );
+/// ```
+pub fn jaro_winkler_against_vec(a: &str, v: &Vec<&str>) -> Vec<f64> {
+  let mut r: Vec<f64> = Vec::with_capacity(v.len()+1);
+  for b in v.iter() {
+    r.push( jaro_winkler(a,b) );
+  } 
+  return r;
 }
 
 /// Calculates the minimum number of insertions, deletions, and substitutions
@@ -162,6 +202,26 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
 
     curr_distances[b.len()]
 }
+
+/// Calculates the minimum number of insertions, deletions, and substitutions
+/// required to change one string into the other from a vector of strings.
+///
+/// ```
+/// use strsim::levenshtein_against_vec;
+///
+/// let v = vec!["test","test1","test12","test123","","tset"];
+/// let res = levenshtein_against_vec("test",&v);
+/// let expected = vec![0,1,2,3,4,2];
+/// assert_eq!(expected,res);
+/// ```
+pub fn levenshtein_against_vec(a: &str, v: &Vec<&str>) -> Vec<usize> {
+  let mut r: Vec<usize> = Vec::with_capacity(v.len()+1);
+  for b in v.iter() {
+    r.push( levenshtein(a,b) );
+  } 
+  return r;
+}
+
 
 /// Same as Levenshtein but allows for adjacent transpositions.
 ///
@@ -212,6 +272,26 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
 
     curr_distances[b.len()]
  }
+
+
+/// Same as Levenshtein but allows for adjacent transpositions
+///
+/// ```
+/// use strsim::damerau_levenshtein_against_vec;
+///
+/// let v = vec!["test","test1","test12","test123","","tset"];
+/// let res = damerau_levenshtein_against_vec("test",&v);
+/// let expected = vec![0,1,2,3,4,1];
+/// assert_eq!(expected,res);
+/// ```
+pub fn damerau_levenshtein_against_vec(a: &str, v: &Vec<&str>) -> Vec<usize> {
+  let mut r: Vec<usize> = Vec::with_capacity(v.len()+1);
+  for b in v.iter() {
+    r.push( damerau_levenshtein(a,b) );
+  } 
+  return r;
+}
+
 
 #[cfg(test)]
 mod tests {

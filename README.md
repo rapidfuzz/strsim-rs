@@ -10,7 +10,7 @@ Rust implementations of [string similarity metrics]. Should compile cleanly on b
 ```toml
 # Cargo.toml
 [dependencies]
-strsim = "0.3.0"
+strsim = "0.4.0"
 ```
 
 ### Usage
@@ -18,7 +18,7 @@ strsim = "0.3.0"
 ```rust
 extern crate strsim;
 
-use strsim::{hamming, levenshtein, damerau_levenshtein, jaro, jaro_winkler};
+use strsim::{hamming, levenshtein, damerau_levenshtein, jaro, jaro_winkler, levenshtein_against_vec, damerau_levenshtein_against_vec, jaro_against_vec, jaro_winkler_against_vec};
 
 fn main() {
     match hamming("hamming", "hammers") {
@@ -35,6 +35,33 @@ fn main() {
 
     assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() <
             0.001);
+
+    //
+    // Vector to calculate distances against
+    let v = vec!["test","test1","test12","test123","","tset"];
+
+    // levenshtein
+    let mut distances = levenshtein_against_vec("test",&v);
+    let mut expected = vec![0,1,2,3,4,2];
+    assert_eq!(distances,expected);
+
+    // damereau_levenshtein
+    distances = damerau_levenshtein_against_vec("test",&v);
+    expected = vec![0,1,2,3,4,1];
+    assert_eq!(distances,expected);
+
+    // jaro
+    distances = jaro_against_vec("test",&v);
+    expected = vec![1.0, 0.933333, 0.888889, 0.857143, 0.0, 0.916667];
+    let mut delta: f64 = res.iter().zip(expected.iter()).map(|(x,y)| (x-y).abs() as f64 ).fold(0.0, |x,y| x+y as f64);
+    assert(true, (delta < 0.0001) ); 
+
+    // jaro_winkler
+    distances = jaro_winkler_against_vec("test",&v);
+    expected = vec![1.0, 0.96, 0.933333, 0.914286, 0.0, 0.925];
+    delta = res.iter().zip(expected.iter()).map(|(x,y)| (x-y).abs() as f64 ).fold(0.0, |x,y| x+y as f64);
+    assert(true, (delta < 0.0001) ); 
+
 }
 ```
 
