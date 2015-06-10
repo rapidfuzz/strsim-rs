@@ -1,4 +1,4 @@
-# strsim-rs [![Build Status](https://travis-ci.org/dguo/strsim-rs.svg?branch=master)](https://travis-ci.org/dguo/strsim-rs)
+# strsim-rs [![Build Status](https://travis-ci.org/dguo/strsim-rs.svg?branch=master)](https://travis-ci.org/dguo/strsim-rs) [![Crates.io](https://img.shields.io/crates/v/strsim.svg)](https://crates.io/crates/strsim)
 
 Rust implementations of [string similarity metrics]. Should compile cleanly on both the nightly and 1.0 versions of Rust. Includes:
   - [Hamming]
