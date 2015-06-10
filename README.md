@@ -1,6 +1,6 @@
 # strsim-rs [![Build Status](https://travis-ci.org/dguo/strsim-rs.svg?branch=master)](https://travis-ci.org/dguo/strsim-rs)
 
-Rust implementations of [string similarity metrics]. Should compile cleanly on both the nightly and beta versions of Rust. Includes:
+Rust implementations of [string similarity metrics]. Should compile cleanly on both the nightly and 1.0 versions of Rust. Includes:
   - [Hamming]
   - [Levenshtein] and [Damerau-Levenshtein]
   - [Jaro and Jaro-Winkler] - this implementation of Jaro-Winkler does not limit the common prefix length
@@ -18,7 +18,9 @@ strsim = "0.4.0"
 ```rust
 extern crate strsim;
 
-use strsim::{hamming, levenshtein, damerau_levenshtein, jaro, jaro_winkler, levenshtein_against_vec, damerau_levenshtein_against_vec, jaro_against_vec, jaro_winkler_against_vec};
+use strsim::{hamming, levenshtein, damerau_levenshtein, jaro, jaro_winkler,
+             levenshtein_against_vec, damerau_levenshtein_against_vec,
+             jaro_against_vec, jaro_winkler_against_vec};
 
 fn main() {
     match hamming("hamming", "hammers") {
@@ -36,32 +38,30 @@ fn main() {
     assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() <
             0.001);
 
-    //
-    // Vector to calculate distances against
-    let v = vec!["test","test1","test12","test123","","tset"];
+    // get vectors of values back
+    let v = vec!["test", "test1", "test12", "test123", "", "tset"];
 
-    // levenshtein
-    let mut distances = levenshtein_against_vec("test",&v);
-    let mut expected = vec![0,1,2,3,4,2];
-    assert_eq!(distances,expected);
+    assert_eq!(levenshtein_against_vec("test", &v),
+               vec![0, 1, 2, 3, 4, 2]);
 
-    // damereau_levenshtein
-    distances = damerau_levenshtein_against_vec("test",&v);
-    expected = vec![0,1,2,3,4,1];
-    assert_eq!(distances,expected);
+    assert_eq!(damerau_levenshtein_against_vec("test", &v),
+               vec![0, 1, 2, 3, 4, 1]);
 
-    // jaro
-    distances = jaro_against_vec("test",&v);
-    expected = vec![1.0, 0.933333, 0.888889, 0.857143, 0.0, 0.916667];
-    let mut delta: f64 = res.iter().zip(expected.iter()).map(|(x,y)| (x-y).abs() as f64 ).fold(0.0, |x,y| x+y as f64);
-    assert(true, (delta < 0.0001) ); 
+    let jaro_distances = jaro_against_vec("test", &v);
+    let jaro_expected = vec![1.0, 0.933333, 0.888889, 0.857143, 0.0, 0.916667];
+    let jaro_delta: f64 = jaro_distances.iter()
+                                        .zip(jaro_expected.iter())
+                                        .map(|(x, y)| (x - y).abs() as f64)
+                                        .fold(0.0, |x, y| x + y as f64);
+    assert!(jaro_delta < 0.0001);
 
-    // jaro_winkler
-    distances = jaro_winkler_against_vec("test",&v);
-    expected = vec![1.0, 0.96, 0.933333, 0.914286, 0.0, 0.925];
-    delta = res.iter().zip(expected.iter()).map(|(x,y)| (x-y).abs() as f64 ).fold(0.0, |x,y| x+y as f64);
-    assert(true, (delta < 0.0001) ); 
-
+    let jaro_winkler_distances = jaro_winkler_against_vec("test", &v);
+    let jaro_winkler_expected = vec![1.0, 0.96, 0.933333, 0.914286, 0.0, 0.925];
+    let jaro_winkler_delta = jaro_winkler_distances.iter()
+                                 .zip(jaro_winkler_expected.iter())
+                                 .map(|(x, y)| (x - y).abs() as f64)
+                                 .fold(0.0, |x, y| x + y as f64);
+    assert!(jaro_winkler_delta < 0.0001);
 }
 ```
 
