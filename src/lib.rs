@@ -120,7 +120,7 @@ pub fn jaro_against_vec(a: &str, v: &Vec<&str>) -> Vec<f64> {
   for b in v.iter() {
     r.push(jaro(a, b));
   }
-  return r;
+  r
 }
 
 /// Like Jaro but gives a boost to strings that have a common prefix.
@@ -170,7 +170,7 @@ pub fn jaro_winkler_against_vec(a: &str, v: &Vec<&str>) -> Vec<f64> {
   for b in v.iter() {
     r.push(jaro_winkler(a, b));
   }
-  return r;
+  r
 }
 
 /// Calculates the minimum number of insertions, deletions, and substitutions
@@ -226,7 +226,7 @@ pub fn levenshtein_against_vec(a: &str, v: &Vec<&str>) -> Vec<usize> {
   for b in v.iter() {
     r.push(levenshtein(a, b));
   }
-  return r;
+  r
 }
 
 /// Same as Levenshtein but allows for adjacent transpositions.
@@ -295,7 +295,7 @@ pub fn damerau_levenshtein_against_vec(a: &str, v: &Vec<&str>) -> Vec<usize> {
   for b in v.iter() {
     r.push(damerau_levenshtein(a, b));
   }
-  return r;
+  r
 }
 
 #[cfg(test)]
