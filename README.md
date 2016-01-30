@@ -65,6 +65,10 @@ fn main() {
 }
 ```
 
+### Development
+
+Install [Vagrant](https://www.vagrantup.com), and run `vagrant up`.
+
 ### License
 
 MIT
