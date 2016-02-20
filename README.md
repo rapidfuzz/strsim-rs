@@ -1,4 +1,4 @@
-# strsim-rs [![Build Status](https://travis-ci.org/dguo/strsim-rs.svg?branch=master)](https://travis-ci.org/dguo/strsim-rs) [![Crates.io](https://img.shields.io/crates/v/strsim.svg)](https://crates.io/crates/strsim)
+# strsim-rs [![Crates.io](https://img.shields.io/crates/v/strsim.svg)](https://crates.io/crates/strsim) [![Linux build status](https://travis-ci.org/dguo/strsim-rs.svg?branch=master)](https://travis-ci.org/dguo/strsim-rs) [![Windows build status](https://ci.appveyor.com/api/projects/status/ggue6i785618a39w?svg=true)](https://ci.appveyor.com/project/dguo/strsim-rs)
 
 Rust implementations of [string similarity metrics]:
   - [Hamming]
