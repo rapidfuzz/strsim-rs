@@ -24,7 +24,7 @@ pub type HammingResult = Result<usize, StrSimError>;
 /// }
 /// ```
 pub fn hamming(a: &str, b: &str) -> HammingResult {
-    if a.len() != b.len() {
+    if a.chars().count() != b.chars().count() {
         Err(StrSimError::DifferentLengthArgs)
     } else {
         Ok(a.chars()
@@ -45,12 +45,15 @@ pub fn hamming(a: &str, b: &str) -> HammingResult {
 /// ```
 pub fn jaro(a: &str, b: &str) -> f64 {
     if a == b { return 1.0; }
-    if a.len() == 0 || b.len() == 0 { return 0.0; }
 
-    let search_range = max(0, (max(a.len(), b.len()) / 2) - 1);
+    let a_len = a.chars().count();
+    let b_len = b.chars().count();
+    if a_len == 0 || b_len == 0 { return 0.0; }
 
-    let mut b_consumed = Vec::with_capacity(b.len());
-    for _ in 0..b.len() {
+    let search_range = max(0, (max(a_len, b_len) / 2) - 1);
+
+    let mut b_consumed = Vec::with_capacity(b_len);
+    for _ in 0..b_len {
         b_consumed.push(false);
     }
     let mut matches = 0.0;
@@ -67,7 +70,7 @@ pub fn jaro(a: &str, b: &str) -> f64 {
                 0
             };
 
-        let max_bound = min(b.len() - 1, i + search_range);
+        let max_bound = min(b_len - 1, i + search_range);
 
         if min_bound > max_bound {
             continue;
@@ -93,8 +96,8 @@ pub fn jaro(a: &str, b: &str) -> f64 {
     if matches == 0.0 {
         0.0
     } else {
-        (1.0 / 3.0) * ((matches / a.len() as f64) +
-                       (matches / b.len() as f64) +
+        (1.0 / 3.0) * ((matches / a_len as f64) +
+                       (matches / b_len as f64) +
                        ((matches - transpositions) / matches))
     }
 }
@@ -182,14 +185,16 @@ pub fn jaro_winkler_against_vec(a: &str, v: &Vec<&str>) -> Vec<f64> {
 /// assert_eq!(3, levenshtein("kitten", "sitting"));
 /// ```
 pub fn levenshtein(a: &str, b: &str) -> usize {
+    let a_len = a.chars().count();
+    let b_len = b.chars().count();
     if a == b { return 0; }
-    else if a.len() == 0 { return b.len(); }
-    else if b.len() == 0 { return a.len(); }
+    else if a_len == 0 { return b_len; }
+    else if b_len == 0 { return a_len; }
 
-    let mut prev_distances: Vec<usize> = Vec::with_capacity(b.len() + 1);
-    let mut curr_distances: Vec<usize> = Vec::with_capacity(b.len() + 1);
+    let mut prev_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
+    let mut curr_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
 
-    for i in 0..(b.len() + 1) {
+    for i in 0..(b_len + 1) {
         prev_distances.push(i);
         curr_distances.push(0);
     }
@@ -207,7 +212,7 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
         prev_distances.clone_from(&curr_distances);
     }
 
-    curr_distances[b.len()]
+    curr_distances[b_len]
 }
 
 /// Calculates the Levenshtein distance between a string and each string in a
@@ -237,18 +242,20 @@ pub fn levenshtein_against_vec(a: &str, v: &Vec<&str>) -> Vec<usize> {
 /// assert_eq!(3, damerau_levenshtein("damerau", "aderua"));
 /// ```
 pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
+    let a_len = a.chars().count();
+    let b_len = b.chars().count();
     if a == b { return 0; }
-    else if a.len() == 0 { return b.len(); }
-    else if b.len() == 0 { return a.len(); }
+    else if a_len == 0 { return b_len; }
+    else if b_len == 0 { return a_len; }
 
-    let mut prev_two_distances: Vec<usize> = Vec::with_capacity(b.len() + 1);
-    let mut prev_distances: Vec<usize> = Vec::with_capacity(b.len() + 1);
-    let mut curr_distances: Vec<usize> = Vec::with_capacity(b.len() + 1);
+    let mut prev_two_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
+    let mut prev_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
+    let mut curr_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
 
     let mut prev_a_char = char::MAX;
     let mut prev_b_char = char::MAX;
 
-    for i in 0..(b.len() + 1) {
+    for i in 0..(b_len + 1) {
         prev_two_distances.push(i);
         prev_distances.push(i);
         curr_distances.push(0);
@@ -276,7 +283,7 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
         prev_a_char = a_char;
     }
 
-    curr_distances[b.len()]
+    curr_distances[b_len]
  }
 
 /// Calculates the Damerau-Levenshtein distance between a string and each string
@@ -327,6 +334,14 @@ mod tests {
     }
 
     #[test]
+    fn hamming_diff_multibyte() {
+        match hamming("hamming", "h香mmüng") {
+            Ok(distance) => { assert_eq!(2, distance); },
+            Err(why) => { panic!("{:?}", why); }
+        }
+    }
+
+    #[test]
     fn hamming_unequal_length() {
         match hamming("ham", "hamming") {
             Ok(_) => { panic!(); },
@@ -360,6 +375,12 @@ mod tests {
     #[test]
     fn jaro_same() {
         assert_eq!(1.0, jaro("jaro", "jaro"));
+    }
+
+    #[test]
+    fn jaro_multibyte() {
+        assert!((0.818 - jaro("testabctest", "testöঙ香test")) < 0.001);
+        assert!((0.818 - jaro("testöঙ香test", "testabctest")) < 0.001);
     }
 
     #[test]
@@ -401,6 +422,12 @@ mod tests {
     #[test]
     fn jaro_winkler_same() {
         assert_eq!(1.0, jaro_winkler("Jaro-Winkler", "Jaro-Winkler"));
+    }
+
+    #[test]
+    fn jaro_winkler_multibyte() {
+        assert!((0.818 - jaro_winkler("testabctest", "testöঙ香test").abs() < 0.001));
+        assert!((0.818 - jaro_winkler("testöঙ香test", "testabctest").abs() < 0.001));
     }
 
     #[test]
@@ -469,6 +496,12 @@ mod tests {
     }
 
     #[test]
+    fn levenshtein_diff_multibyte() {
+        assert_eq!(3, levenshtein("öঙ香", "abc"));
+        assert_eq!(3, levenshtein("abc", "öঙ香"));
+    }
+
+    #[test]
     fn levenshtein_diff_longer() {
         let a = "The quick brown fox jumped over the angry dog.";
         let b = "Lorem ipsum dolor sit amet, dicta latine an eam.";
@@ -513,6 +546,12 @@ mod tests {
     #[test]
     fn damerau_levenshtein_diff_reversed() {
         assert_eq!(3, damerau_levenshtein("aderua", "damerau"));
+    }
+
+    #[test]
+    fn damerau_levenshtein_diff_multibyte() {
+        assert_eq!(3, damerau_levenshtein("öঙ香", "abc"));
+        assert_eq!(3, damerau_levenshtein("abc", "öঙ香"));
     }
 
     #[test]
