@@ -426,8 +426,10 @@ mod tests {
 
     #[test]
     fn jaro_winkler_multibyte() {
-        assert!((0.818 - jaro_winkler("testabctest", "testöঙ香test").abs() < 0.001));
-        assert!((0.818 - jaro_winkler("testöঙ香test", "testabctest").abs() < 0.001));
+        assert!((0.89 - jaro_winkler("testabctest", "testöঙ香test")).abs() <
+                0.001);
+        assert!((0.89 - jaro_winkler("testöঙ香test", "testabctest")).abs() <
+                0.001);
     }
 
     #[test]
