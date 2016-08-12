@@ -24,14 +24,14 @@ pub type HammingResult = Result<usize, StrSimError>;
 /// }
 /// ```
 pub fn hamming(a: &str, b: &str) -> HammingResult {
-    let (mut ita, mut itb, mut cnt) = (a.chars(), b.chars(), 0);
-    loop{
+    let (mut ita, mut itb, mut count) = (a.chars(), b.chars(), 0);
+    loop {
         match (ita.next(), itb.next()){
-            (Some(x), Some(y)) => if x != y {cnt+=1},
-            (None, None) => return Ok(cnt),
+            (Some(x), Some(y)) => if x != y { count += 1 },
+            (None, None) => return Ok(count),
             _ => return Err(StrSimError::DifferentLengthArgs),
-        } 
-    }   
+        }
+    }
 }
 
 /// Calculates the Jaro similarity between two strings. The returned value
