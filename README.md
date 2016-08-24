@@ -13,6 +13,8 @@ Rust implementations of [string similarity metrics]:
 strsim = "0.5.0"
 ```
 
+### [Documentation](http://dannyguo.com/strsim-rs/)
+
 ### Usage
 
 ```rust
