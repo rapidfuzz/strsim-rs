@@ -10,7 +10,7 @@ Rust implementations of [string similarity metrics]:
 ```toml
 # Cargo.toml
 [dependencies]
-strsim = "0.5.0"
+strsim = "0.5.1"
 ```
 
 ### [Documentation](http://dannyguo.com/strsim-rs/)
@@ -80,3 +80,4 @@ Install [Vagrant](https://www.vagrantup.com), and run `vagrant up`.
 [Jaro and Jaro-Winkler]:http://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance
 [Levenshtein]:http://en.wikipedia.org/wiki/Levenshtein_distance
 [Hamming]:http://en.wikipedia.org/wiki/Hamming_distance
+

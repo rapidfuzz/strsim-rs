@@ -1,7 +1,7 @@
 [package]
 
 name = "strsim"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["Danny Guo <dannyguo91@gmail.com>"]
 description = """
 Implementations of string similarity metrics.
@@ -13,3 +13,5 @@ keywords = ["string", "similarity", "Hamming",
             "Levenshtein", "Jaro"]
 homepage = "https://github.com/dguo/strsim-rs"
 repository = "https://github.com/dguo/strsim-rs"
+documentation = "http://dannyguo.com/strsim-rs/"
+
