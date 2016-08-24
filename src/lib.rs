@@ -1,6 +1,5 @@
-
-//! This library implements string similarity metrics. Currently includes
-//! Hamming, Levenshtein, Jaro, and Jaro-Winkler.
+//! This library implements string similarity metrics. Includes Hamming,
+//! Levenshtein, Jaro, and Jaro-Winkler.
 
 use std::char;
 use std::cmp::{max, min};
@@ -48,9 +47,14 @@ pub fn jaro(a: &str, b: &str) -> f64 {
 
     let a_len = a.chars().count();
     let b_len = b.chars().count();
-    if a_len == 0 || b_len == 0 { return 0.0; }
 
-    let search_range = max(0, (max(a_len, b_len) / 2) - 1);
+    // The check for lengths of one here is to prevent integer overflow when
+    // calculating the search range.
+    if a_len == 0 || b_len == 0 || (a_len == 1 && b_len == 1) {
+        return 0.0;
+    }
+
+    let search_range = (max(a_len, b_len) / 2) - 1;
 
     let mut b_consumed = Vec::with_capacity(b_len);
     for _ in 0..b_len {
@@ -389,6 +393,21 @@ mod tests {
     }
 
     #[test]
+    fn jaro_diff_one_character() {
+        assert_eq!(0.0, jaro("a", "b"));
+    }
+
+    #[test]
+    fn jaro_diff_one_and_two() {
+        assert!((0.83 - jaro("a", "ab")).abs() < 0.01);
+    }
+
+    #[test]
+    fn jaro_diff_two_and_one() {
+        assert!((0.83 - jaro("ab", "a")).abs() < 0.01);
+    }
+
+    #[test]
     fn jaro_diff_no_transposition() {
         assert!((0.822 - jaro("dwayne", "duane")).abs() < 0.001);
     }
@@ -436,6 +455,11 @@ mod tests {
     fn jaro_winkler_diff_short() {
         assert!((0.813 - jaro_winkler("dixon", "dicksonx")).abs() < 0.001);
         assert!((0.813 - jaro_winkler("dicksonx", "dixon")).abs() < 0.001);
+    }
+
+    #[test]
+    fn jaro_winkler_diff_one_character() {
+        assert_eq!(0.0, jaro_winkler("a", "b"));
     }
 
     #[test]
@@ -697,3 +721,4 @@ mod tests {
         assert!(equal_float_vecs(result, expected));
     }
 }
+
