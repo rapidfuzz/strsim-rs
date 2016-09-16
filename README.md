@@ -13,7 +13,11 @@ Rust implementations of [string similarity metrics]:
 strsim = "0.5.1"
 ```
 
-### [Documentation](http://dannyguo.com/strsim-rs/)
+### [Documentation](https://docs.rs/strsim/)
+
+You can change the version in the url to see the documentation for an older
+version in the
+[changelog](https://github.com/dguo/strsim-rs/blob/master/CHANGELOG.md).
 
 ### Usage
 
