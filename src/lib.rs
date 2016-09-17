@@ -81,18 +81,17 @@ pub fn jaro(a: &str, b: &str) -> f64 {
         }
 
         for (j, b_char) in b.chars().enumerate() {
-            if min_bound <= j && j <= max_bound {
-                if a_char == b_char && !b_consumed[j] {
-                    b_consumed[j] = true;
-                    matches += 1.0;
+            if min_bound <= j && j <= max_bound && a_char == b_char &&
+               !b_consumed[j] {
+                b_consumed[j] = true;
+                matches += 1.0;
 
-                    if j < b_match_index {
-                        transpositions += 1.0;
-                    }
-                    b_match_index = j;
-
-                    break;
+                if j < b_match_index {
+                    transpositions += 1.0;
                 }
+                b_match_index = j;
+
+                break;
             }
         }
     }
@@ -122,12 +121,8 @@ pub fn jaro(a: &str, b: &str) -> f64 {
 ///                        .fold(0.0, |x, y| x + y as f64);
 /// assert!(delta.abs() < 0.0001);
 /// ```
-pub fn jaro_against_vec(a: &str, v: &Vec<&str>) -> Vec<f64> {
-  let mut r: Vec<f64> = Vec::with_capacity(v.len());
-  for b in v.iter() {
-    r.push(jaro(a, b));
-  }
-  r
+pub fn jaro_against_vec(a: &str, v: &[&str]) -> Vec<f64> {
+  v.iter().map(|b| jaro(a, b)).collect()
 }
 
 /// Like Jaro but gives a boost to strings that have a common prefix.
@@ -172,12 +167,8 @@ pub fn jaro_winkler(a: &str, b: &str) -> f64 {
 ///                        .fold(0.0, |x, y| x + y as f64);
 /// assert!(delta.abs() < 0.0001);
 /// ```
-pub fn jaro_winkler_against_vec(a: &str, v: &Vec<&str>) -> Vec<f64> {
-  let mut r: Vec<f64> = Vec::with_capacity(v.len());
-  for b in v.iter() {
-    r.push(jaro_winkler(a, b));
-  }
-  r
+pub fn jaro_winkler_against_vec(a: &str, v: &[&str]) -> Vec<f64> {
+  v.iter().map(|b| jaro_winkler(a, b)).collect()
 }
 
 /// Calculates the minimum number of insertions, deletions, and substitutions
@@ -230,12 +221,8 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
 /// let expected = vec![0, 1, 2, 3, 4, 2];
 /// assert_eq!(expected, result);
 /// ```
-pub fn levenshtein_against_vec(a: &str, v: &Vec<&str>) -> Vec<usize> {
-  let mut r: Vec<usize> = Vec::with_capacity(v.len());
-  for b in v.iter() {
-    r.push(levenshtein(a, b));
-  }
-  r
+pub fn levenshtein_against_vec(a: &str, v: &[&str]) -> Vec<usize> {
+  v.iter().map(|b| levenshtein(a, b)).collect()
 }
 
 /// Same as Levenshtein but allows for adjacent transpositions.
@@ -301,12 +288,8 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
 /// let expected = vec![0, 1, 2, 3, 4, 1];
 /// assert_eq!(expected, result);
 /// ```
-pub fn damerau_levenshtein_against_vec(a: &str, v: &Vec<&str>) -> Vec<usize> {
-  let mut r: Vec<usize> = Vec::with_capacity(v.len());
-  for b in v.iter() {
-    r.push(damerau_levenshtein(a, b));
-  }
-  r
+pub fn damerau_levenshtein_against_vec(a: &str, v: &[&str]) -> Vec<usize> {
+  v.iter().map(|b| damerau_levenshtein(a, b)).collect()
 }
 
 #[cfg(test)]
