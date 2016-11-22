@@ -1,6 +1,10 @@
 # Change Log
 This project attempts to adhere to [Semantic Versioning](http://semver.org).
 
+## [0.5.2] - (2016-11-21)
+### Changed
+- Remove Cargo generated documentation in favor of a [docs.rs] link
+
 ## [0.5.1] - (2016-08-23)
 ### Added
 - Add Cargo generated documentation
@@ -69,7 +73,8 @@ vector of results (thanks @ovarene)
 ### Added
 - Implement Hamming, Jaro, Jaro-Winkler, and Levenshtein
 
-[Unreleased]: https://github.com/dguo/strsim-rs/compare/0.5.1...HEAD
+[Unreleased]: https://github.com/dguo/strsim-rs/compare/0.5.2...HEAD
+[0.5.2]: https://github.com/dguo/strsim-rs/compare/0.5.1...0.5.2
 [0.5.1]: https://github.com/dguo/strsim-rs/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/dguo/strsim-rs/compare/0.4.1...0.5.0
 [0.4.1]: https://github.com/dguo/strsim-rs/compare/0.4.0...0.4.1
@@ -83,4 +88,5 @@ vector of results (thanks @ovarene)
 [0.2.0]: https://github.com/dguo/strsim-rs/compare/0.1.1...0.2.0
 [0.1.1]: https://github.com/dguo/strsim-rs/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/dguo/strsim-rs/compare/fabad4...0.1.0
+[docs.rs]: https://docs.rs/strsim/
 
