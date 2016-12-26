@@ -1,8 +1,8 @@
-//! This library implements string similarity metrics. Includes Hamming,
-//! Levenshtein, Jaro, and Jaro-Winkler.
+//! This library implements string similarity metrics.
 
 use std::char;
 use std::cmp::{max, min};
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 pub enum StrSimError {
@@ -225,14 +225,15 @@ pub fn levenshtein_against_vec(a: &str, v: &[&str]) -> Vec<usize> {
   v.iter().map(|b| levenshtein(a, b)).collect()
 }
 
-/// Same as Levenshtein but allows for adjacent transpositions.
+/// Like Levenshtein but allows for adjacent transpositions. Each substring can
+/// only be edited once.
 ///
 /// ```
-/// use strsim::damerau_levenshtein;
+/// use strsim::osa_distance;
 ///
-/// assert_eq!(3, damerau_levenshtein("damerau", "aderua"));
+/// assert_eq!(3, osa_distance("ab", "bca"));
 /// ```
-pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
+pub fn osa_distance(a: &str, b: &str) -> usize {
     let a_len = a.chars().count();
     let b_len = b.chars().count();
     if a == b { return 0; }
@@ -275,7 +276,93 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
     }
 
     curr_distances[b_len]
- }
+
+}
+
+/// Calculates the optimal string alignment distance between a string and each
+/// string in a vector. Returns a vector of corresponding values.
+///
+/// ```
+/// use strsim::osa_distance_against_vec;
+///
+/// let v = vec!["test", "test1", "test12", "test123", "", "tset"];
+/// let result = osa_distance_against_vec("test", &v);
+/// let expected = vec![0, 1, 2, 3, 4, 1];
+/// assert_eq!(expected, result);
+/// ```
+pub fn osa_distance_against_vec(a: &str, v: &[&str]) -> Vec<usize> {
+  v.iter().map(|b| osa_distance(a, b)).collect()
+}
+
+/// Like optimal string alignment, but substrings can be edited an unlimited
+/// number of times, and the triangle inequality holds.
+///
+/// ```
+/// use strsim::damerau_levenshtein;
+///
+/// assert_eq!(2, damerau_levenshtein("ab", "bca"));
+/// ```
+pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
+    if a == b { return 0; }
+
+    let a_chars: Vec<char> = a.chars().collect();
+    let b_chars: Vec<char> = b.chars().collect();
+    let a_len = a_chars.len();
+    let b_len = b_chars.len();
+
+    if a_len == 0 { return b_len; }
+    if b_len == 0 { return a_len; }
+
+    let mut distances = vec![vec![0; b_len + 2]; a_len + 2];
+    let max_distance = a_len + b_len;
+    distances[0][0] = max_distance;
+
+    for i in 0..(a_len + 1) {
+        distances[i + 1][0] = max_distance;
+        distances[i + 1][1] = i;
+    }
+
+    for j in 0..(b_len + 1) {
+        distances[0][j + 1] = max_distance;
+        distances[1][j + 1] = j;
+    }
+
+    let mut chars: HashMap<char, usize> = HashMap::new();
+
+    for i in 1..(a_len + 1) {
+        let mut db = 0;
+
+        for j in 1..(b_len + 1) {
+            let k = match chars.get(&b_chars[j - 1]) {
+                Some(value) => value.clone(),
+                None => 0
+            };
+
+            let l = db;
+
+            let mut cost = 1;
+            if a_chars[i - 1] == b_chars[j - 1] {
+                cost = 0;
+                db = j;
+            }
+
+            let substitution_cost = distances[i][j] + cost;
+            let insertion_cost = distances[i][j + 1] + 1;
+            let deletion_cost = distances[i + 1][j] + 1;
+            let transposition_cost = distances[k][l] + (i - k - 1) + 1 +
+                                     (j - l - 1);
+
+            distances[i + 1][j + 1] = min(substitution_cost,
+                                      min(insertion_cost,
+                                      min(deletion_cost,
+                                          transposition_cost)));
+        }
+
+        chars.insert(a_chars[i - 1], i);
+    }
+
+    distances[a_len + 1][b_len + 1]
+}
 
 /// Calculates the Damerau-Levenshtein distance between a string and each string
 /// in a vector. Returns a vector of corresponding values.
@@ -528,6 +615,89 @@ mod tests {
     }
 
     #[test]
+    fn osa_distance_empty() {
+        assert_eq!(0, osa_distance("", ""));
+    }
+
+    #[test]
+    fn osa_distance_same() {
+        assert_eq!(0, osa_distance("damerau", "damerau"));
+    }
+
+    #[test]
+    fn osa_distance_first_empty() {
+        assert_eq!(7, osa_distance("", "damerau"));
+    }
+
+    #[test]
+    fn osa_distance_second_empty() {
+        assert_eq!(7, osa_distance("damerau", ""));
+    }
+
+    #[test]
+    fn osa_distance_diff() {
+        assert_eq!(3, osa_distance("ca", "abc"));
+    }
+
+    #[test]
+    fn osa_distance_diff_short() {
+        assert_eq!(3, osa_distance("damerau", "aderua"));
+    }
+
+    #[test]
+    fn osa_distance_diff_reversed() {
+        assert_eq!(3, osa_distance("aderua", "damerau"));
+    }
+
+    #[test]
+    fn osa_distance_diff_multibyte() {
+        assert_eq!(3, osa_distance("öঙ香", "abc"));
+        assert_eq!(3, osa_distance("abc", "öঙ香"));
+    }
+
+    #[test]
+    fn osa_distance_diff_unequal_length() {
+        assert_eq!(6, osa_distance("damerau", "aderuaxyz"));
+    }
+
+    #[test]
+    fn osa_distance_diff_unequal_length_reversed() {
+        assert_eq!(6, osa_distance("aderuaxyz", "damerau"));
+    }
+
+    #[test]
+    fn osa_distance_diff_comedians() {
+        assert_eq!(5, osa_distance("Stewart", "Colbert"));
+    }
+
+    #[test]
+    fn osa_distance_many_transpositions() {
+        assert_eq!(4, osa_distance("abcdefghijkl", "bacedfgihjlk"));
+    }
+
+    #[test]
+    fn osa_distance_diff_longer() {
+        let a = "The quick brown fox jumped over the angry dog.";
+        let b = "Lehem ipsum dolor sit amet, dicta latine an eam.";
+        assert_eq!(36, osa_distance(a, b));
+    }
+
+    #[test]
+    fn osa_distance_beginning_transposition() {
+        assert_eq!(1, osa_distance("foobar", "ofobar"));
+    }
+
+    #[test]
+    fn osa_distance_end_transposition() {
+        assert_eq!(1, osa_distance("specter", "spectre"));
+    }
+
+    #[test]
+    fn osa_distance_restricted_edit() {
+        assert_eq!(4, osa_distance("a cat", "an abct"));
+    }
+
+    #[test]
     fn damerau_levenshtein_empty() {
         assert_eq!(0, damerau_levenshtein("", ""));
     }
@@ -545,6 +715,11 @@ mod tests {
     #[test]
     fn damerau_levenshtein_second_empty() {
         assert_eq!(7, damerau_levenshtein("damerau", ""));
+    }
+
+    #[test]
+    fn damerau_levenshtein_diff() {
+        assert_eq!(2, damerau_levenshtein("ca", "abc"));
     }
 
     #[test]
@@ -601,6 +776,11 @@ mod tests {
     }
 
     #[test]
+    fn damerau_levenshtein_unrestricted_edit() {
+        assert_eq!(3, damerau_levenshtein("a cat", "an abct"));
+    }
+
+    #[test]
     fn levenshtein_against_vec_empty() {
         let v = Vec::new();
         let result = levenshtein_against_vec("test", &v);
@@ -625,6 +805,30 @@ mod tests {
     }
 
     #[test]
+    fn osa_distance_against_vec_empty() {
+        let v = Vec::new();
+        let result = osa_distance_against_vec("test", &v);
+        let expected: Vec<usize> = Vec::new();
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn osa_distance_against_vec_one() {
+        let v = vec!["etst"];
+        let result = osa_distance_against_vec("test", &v);
+        let expected = vec![1];
+        assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn osa_distance_against_vec_many() {
+        let v = vec!["test", "test1", "test12", "test123", "", "tsvet"];
+        let result = osa_distance_against_vec("test", &v);
+        let expected = vec![0, 1, 2, 3, 4, 3];
+        assert_eq!(expected, result);
+    }
+
+    #[test]
     fn damerau_levenshtein_against_vec_empty() {
         let v = Vec::new();
         let result = damerau_levenshtein_against_vec("test", &v);
@@ -642,9 +846,9 @@ mod tests {
 
     #[test]
     fn damerau_levenshtein_against_vec_many() {
-        let v = vec!["test", "test1", "test12", "test123", "", "tset"];
+        let v = vec!["test", "test1", "test12", "test123", "", "tsvet"];
         let result = damerau_levenshtein_against_vec("test", &v);
-        let expected = vec![0, 1, 2, 3, 4, 1];
+        let expected = vec![0, 1, 2, 3, 4, 2];
         assert_eq!(expected, result);
     }
 
