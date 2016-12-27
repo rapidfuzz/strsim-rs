@@ -1,8 +1,9 @@
 extern crate strsim;
 
-use strsim::{hamming, levenshtein, damerau_levenshtein, jaro, jaro_winkler,
-             levenshtein_against_vec, damerau_levenshtein_against_vec,
-             jaro_against_vec, jaro_winkler_against_vec};
+use strsim::{hamming, levenshtein, osa_distance, damerau_levenshtein, jaro,
+             jaro_winkler, levenshtein_against_vec, osa_distance_against_vec,
+             damerau_levenshtein_against_vec, jaro_against_vec,
+             jaro_winkler_against_vec};
 
 #[test]
 fn hamming_works() {
@@ -18,8 +19,13 @@ fn levenshtein_works() {
 }
 
 #[test]
+fn osa_distance_works() {
+    assert_eq!(3, osa_distance("ac", "cba"));
+}
+
+#[test]
 fn damerau_levenshtein_works() {
-    assert_eq!(3, damerau_levenshtein("damerau", "aderua"));
+    assert_eq!(2, damerau_levenshtein("ac", "cba"));
 }
 
 #[test]
@@ -36,17 +42,25 @@ fn jaro_winkler_works() {
 
 #[test]
 fn levenshtein_against_vec_works() {
-   let v = vec!["test", "test1", "test12", "test123", "", "tset"];
+   let v = vec!["test", "test1", "test12", "test123", "", "tset", "tsvet"];
    let result = levenshtein_against_vec("test", &v);
-   let expected = vec![0, 1, 2, 3, 4, 2];
+   let expected = vec![0, 1, 2, 3, 4, 2, 3];
+   assert_eq!(expected, result);
+}
+
+#[test]
+fn osa_distance_against_vec_works() {
+   let v = vec!["test", "test1", "test12", "test123", "", "tset", "tsvet"];
+   let result = osa_distance_against_vec("test", &v);
+   let expected = vec![0, 1, 2, 3, 4, 1, 3];
    assert_eq!(expected, result);
 }
 
 #[test]
 fn damerau_levenshtein_against_vec_works() {
-   let v = vec!["test", "test1", "test12", "test123", "", "tset"];
+   let v = vec!["test", "test1", "test12", "test123", "", "tset", "tsvet"];
    let result = damerau_levenshtein_against_vec("test", &v);
-   let expected = vec![0, 1, 2, 3, 4, 1];
+   let expected = vec![0, 1, 2, 3, 4, 1, 2];
    assert_eq!(expected, result);
 }
 

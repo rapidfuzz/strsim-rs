@@ -1,6 +1,14 @@
 # Change Log
 This project attempts to adhere to [Semantic Versioning](http://semver.org).
 
+## [0.6.0] - (2016-12-26)
+### Added
+- Add optimal string alignment distance
+
+### Fixed
+- Fix Damerau-Levenshtein implementation (previous implementation was actually
+optimal string alignment; see this [Damerau-Levenshtein explanation])
+
 ## [0.5.2] - (2016-11-21)
 ### Changed
 - Remove Cargo generated documentation in favor of a [docs.rs] link
@@ -73,7 +81,8 @@ vector of results (thanks @ovarene)
 ### Added
 - Implement Hamming, Jaro, Jaro-Winkler, and Levenshtein
 
-[Unreleased]: https://github.com/dguo/strsim-rs/compare/0.5.2...HEAD
+[Unreleased]: https://github.com/dguo/strsim-rs/compare/0.6.0...HEAD
+[0.6.0]: https://github.com/dguo/strsim-rs/compare/0.5.2...0.6.0
 [0.5.2]: https://github.com/dguo/strsim-rs/compare/0.5.1...0.5.2
 [0.5.1]: https://github.com/dguo/strsim-rs/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/dguo/strsim-rs/compare/0.4.1...0.5.0
@@ -89,4 +98,6 @@ vector of results (thanks @ovarene)
 [0.1.1]: https://github.com/dguo/strsim-rs/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/dguo/strsim-rs/compare/fabad4...0.1.0
 [docs.rs]: https://docs.rs/strsim/
+[Damerau-Levenshtein explanation]:
+http://scarcitycomputing.blogspot.com/2013/04/damerau-levenshtein-edit-distance.html
 
