@@ -180,18 +180,19 @@ pub fn jaro_winkler_against_vec(a: &str, v: &[&str]) -> Vec<f64> {
 /// assert_eq!(3, levenshtein("kitten", "sitting"));
 /// ```
 pub fn levenshtein(a: &str, b: &str) -> usize {
+    if a == b { return 0; }
+
     let a_len = a.chars().count();
     let b_len = b.chars().count();
-    if a == b { return 0; }
-    else if a_len == 0 { return b_len; }
-    else if b_len == 0 { return a_len; }
+
+    if a_len == 0 { return b_len; }
+    if b_len == 0 { return a_len; }
+
+    let mut curr_distances = vec![0; b_len + 1];
 
     let mut prev_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
-    let mut curr_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
-
     for i in 0..(b_len + 1) {
         prev_distances.push(i);
-        curr_distances.push(0);
     }
 
     for (i, a_char) in a.chars().enumerate() {
