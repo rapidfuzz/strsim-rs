@@ -77,9 +77,8 @@ fn main() {
 ```
 
 ### Development
-If you don't want to install Rust itself, you can install [Docker], and run
-`$ ./dev`. This should bring up a temporary container from which you can run
-[cargo] commands.
+If you don't want to install Rust itself, you can run `$ ./dev` for a
+development CLI if you have [Docker] installed.
 
 ### License
 [MIT](https://github.com/dguo/strsim-rs/blob/master/LICENSE)
@@ -91,5 +90,3 @@ If you don't want to install Rust itself, you can install [Docker], and run
 [Hamming]:http://en.wikipedia.org/wiki/Hamming_distance
 [Optimal string alignment]:https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Optimal_string_alignment_distance
 [Docker]:https://docs.docker.com/engine/installation/
-[cargo]:https://github.com/rust-lang/cargo
-
