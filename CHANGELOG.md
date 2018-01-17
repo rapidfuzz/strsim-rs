@@ -1,7 +1,12 @@
 # Change Log
 This project attempts to adhere to [Semantic Versioning](http://semver.org).
 
-## Unreleased
+## [Unreleased]
+
+## [0.7.0] - (2018-01-17)
+### Changed
+- Faster Levenshtein implementation (thanks @wdv4758h)
+
 ### Removed
 - Remove the "against_vec" functions. They are one-liners now, so they don't
   seem to add enough value to justify making the API larger. I didn't find
@@ -91,7 +96,8 @@ vector of results (thanks @ovarene)
 ### Added
 - Implement Hamming, Jaro, Jaro-Winkler, and Levenshtein
 
-[Unreleased]: https://github.com/dguo/strsim-rs/compare/0.6.0...HEAD
+[Unreleased]: https://github.com/dguo/strsim-rs/compare/0.7.0...HEAD
+[0.7.0]: https://github.com/dguo/strsim-rs/compare/0.6.0...0.7.0
 [0.6.0]: https://github.com/dguo/strsim-rs/compare/0.5.2...0.6.0
 [0.5.2]: https://github.com/dguo/strsim-rs/compare/0.5.1...0.5.2
 [0.5.1]: https://github.com/dguo/strsim-rs/compare/0.5.0...0.5.1

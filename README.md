@@ -11,7 +11,7 @@
 ```toml
 # Cargo.toml
 [dependencies]
-strsim = "0.6.0"
+strsim = "0.7.0"
 ```
 
 ### [Documentation](https://docs.rs/strsim/)
