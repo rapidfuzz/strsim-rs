@@ -149,27 +149,26 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
     if a_len == 0 { return b_len; }
     if b_len == 0 { return a_len; }
 
-    let mut curr_distances = vec![0; b_len + 1];
+    let mut cache: Vec<usize> = (1..b_len+1).collect();
 
-    let mut prev_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
-    for i in 0..(b_len + 1) {
-        prev_distances.push(i);
-    }
+    let mut result = 0;
+    let mut distance_a;
+    let mut distance_b;
 
     for (i, a_char) in a.chars().enumerate() {
-        curr_distances[0] = i + 1;
+        result = i;
+        distance_b = i;
 
         for (j, b_char) in b.chars().enumerate() {
             let cost = if a_char == b_char { 0 } else { 1 };
-            curr_distances[j + 1] = min(curr_distances[j] + 1,
-                                        min(prev_distances[j + 1] + 1,
-                                            prev_distances[j] + cost));
+            distance_a = distance_b + cost;
+            distance_b = cache[j];
+            result = min(result + 1, min(distance_a, distance_b + 1));
+            cache[j] = result;
         }
-
-        prev_distances.clone_from(&curr_distances);
     }
 
-    curr_distances[b_len]
+    result
 }
 
 /// Like Levenshtein but allows for adjacent transpositions. Each substring can
