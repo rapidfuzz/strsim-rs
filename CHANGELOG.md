@@ -90,7 +90,7 @@ vector of results (thanks @ovarene)
 
 ### Fixed
 - Limit Jaro-Winkler return value to a maximum of 1.0
-- Fix float comparsions in tests
+- Fix float comparisons in tests
 
 ## [0.1.0] - (2015-02-09)
 ### Added
