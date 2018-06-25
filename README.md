@@ -50,6 +50,8 @@ fn main() {
 If you don't want to install Rust itself, you can run `$ ./dev` for a
 development CLI if you have [Docker] installed.
 
+Benchmarks require a Nightly toolchain. They are run by `cargo +nightly bench`.
+
 ### License
 [MIT](https://github.com/dguo/strsim-rs/blob/master/LICENSE)
 
