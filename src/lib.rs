@@ -313,6 +313,24 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
     distances[a_len + 1][b_len + 1]
 }
 
+/// Calculates normalized score of the Damerau–Levenshtein algorithm
+///
+/// ```
+/// use strsim::normalized_damerau_levenshtein;
+///
+/// assert!((normalized_damerau_levenshtein("levenshtein", "löwenbräu") - 0.27272).abs() < 0.00001);
+/// assert!((normalized_damerau_levenshtein("", "") - 1.0).abs() < 0.00001);
+/// assert!(normalized_damerau_levenshtein("", "flower").abs() < 0.00001);
+/// assert!(normalized_damerau_levenshtein("tree", "").abs() < 0.00001);
+/// assert!((normalized_damerau_levenshtein("sunglasses", "sunglasses") - 1.0).abs() < 0.00001);
+/// ```
+pub fn normalized_damerau_levenshtein(a: &str, b: &str) -> f64 {
+    if a.len() == 0 && b.len() == 0 {
+        return 1.0;
+    }
+    1.0 - (damerau_levenshtein(a, b) as f64) / (a.len().max(b.len()) as f64)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
