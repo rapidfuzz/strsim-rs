@@ -1,6 +1,6 @@
 extern crate strsim;
 
-use strsim::{hamming, levenshtein, osa_distance, damerau_levenshtein, jaro,
+use strsim::{hamming, levenshtein, normalized_levenshtein, osa_distance, damerau_levenshtein, jaro,
              jaro_winkler};
 
 #[test]
@@ -14,6 +14,31 @@ fn hamming_works() {
 #[test]
 fn levenshtein_works() {
     assert_eq!(3, levenshtein("kitten", "sitting"));
+}
+
+#[test]
+fn normalized_levenshtein_works() {
+    assert!((normalized_levenshtein("kitten", "sitting") - 0.57142).abs() < 0.00001);
+}
+
+#[test]
+fn normalized_levenshtein_for_empty_strings() {
+    assert!((normalized_levenshtein("", "") - 1.0).abs() < 0.00001);
+}
+
+#[test]
+fn normalized_levenshtein_first_empty() {
+    assert!(normalized_levenshtein("", "second").abs() < 0.00001);
+}
+
+#[test]
+fn normalized_levenshtein_second_empty() {
+    assert!(normalized_levenshtein("first", "").abs() < 0.00001);
+}
+
+#[test]
+fn normalized_levenshtein_identical_strings() {
+    assert!((normalized_levenshtein("identical", "identical") - 1.0).abs() < 0.00001);
 }
 
 #[test]
