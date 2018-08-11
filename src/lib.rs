@@ -171,6 +171,24 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
     result
 }
 
+/// Calculates normalized score of the Levenshtein algorithm
+///
+/// ```
+/// use strsim::normalized_levenshtein;
+///
+/// assert!((normalized_levenshtein("kitten", "sitting") - 0.57142).abs() < 0.00001);
+/// assert!((normalized_levenshtein("", "") - 1.0).abs() < 0.00001);
+/// assert!(normalized_levenshtein("", "second").abs() < 0.00001);
+/// assert!(normalized_levenshtein("first", "").abs() < 0.00001);
+/// assert!((normalized_levenshtein("string", "string") - 1.0).abs() < 0.00001);
+/// ```
+pub fn normalized_levenshtein(a: &str, b: &str) -> f64 {
+    if a.len() == 0 && b.len() == 0 {
+        return 1.0;
+    }
+    1.0 - (levenshtein(a, b) as f64) / (a.len().max(b.len()) as f64)
+}
+
 /// Like Levenshtein but allows for adjacent transpositions. Each substring can
 /// only be edited once.
 ///
