@@ -186,7 +186,7 @@ pub fn normalized_levenshtein(a: &str, b: &str) -> f64 {
     if a.is_empty() && b.is_empty() {
         return 1.0;
     }
-    1.0 - (levenshtein(a, b) as f64) / (a.len().max(b.len()) as f64)
+    1.0 - (levenshtein(a, b) as f64) / (a.chars().count().max(b.chars().count()) as f64)
 }
 
 /// Like Levenshtein but allows for adjacent transpositions. Each substring can
@@ -328,7 +328,7 @@ pub fn normalized_damerau_levenshtein(a: &str, b: &str) -> f64 {
     if a.is_empty() && b.is_empty() {
         return 1.0;
     }
-    1.0 - (damerau_levenshtein(a, b) as f64) / (a.len().max(b.len()) as f64)
+    1.0 - (damerau_levenshtein(a, b) as f64) / (a.chars().count().max(b.chars().count()) as f64)
 }
 
 #[cfg(test)]
