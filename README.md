@@ -2,9 +2,9 @@
 
 [Rust](https://www.rust-lang.org) implementations of [string similarity metrics]:
   - [Hamming]
-  - [Levenshtein]
+  - [Levenshtein] - distance & normalized
   - [Optimal string alignment]
-  - [Damerau-Levenshtein]
+  - [Damerau-Levenshtein] - distance & normalized
   - [Jaro and Jaro-Winkler] - this implementation of Jaro-Winkler does not limit the common prefix length
 
 ### Installation
@@ -23,8 +23,8 @@ version in the
 ```rust
 extern crate strsim;
 
-use strsim::{hamming, levenshtein, osa_distance, damerau_levenshtein, jaro,
-             jaro_winkler};
+use strsim::{hamming, levenshtein, normalized_levenshtein, osa_distance, damerau_levenshtein,
+             normalized_damerau_levenshtein, jaro, jaro_winkler};
 
 fn main() {
     match hamming("hamming", "hammers") {
@@ -34,9 +34,13 @@ fn main() {
 
     assert_eq!(3, levenshtein("kitten", "sitting"));
 
+    assert!((normalized_levenshtein("kitten", "sitting") - 0.57142).abs() < 0.00001);
+
     assert_eq!(3, osa_distance("ac", "cba"));
 
     assert_eq!(2, damerau_levenshtein("ac", "cba"));
+
+    assert!((normalized_damerau_levenshtein("levenshtein", "löwenbräu") - 0.27272).abs() < 0.00001)
 
     assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() <
             0.001);
