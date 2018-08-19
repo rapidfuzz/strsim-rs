@@ -47,6 +47,15 @@ mod benches {
     }
 
     #[bench]
+    fn bench_normalized_levenshtein(bencher: &mut Bencher) {
+        let a = "Philosopher Friedrich Nietzsche";
+        let b = "Philosopher Jean-Paul Sartre";
+        bencher.iter(|| {
+            strsim::normalized_levenshtein(&a, &b);
+        })
+    }
+
+    #[bench]
     fn bench_osa_distance(bencher: &mut Bencher) {
         let a = "Philosopher Friedrich Nietzsche";
         let b = "Philosopher Jean-Paul Sartre";
@@ -61,6 +70,15 @@ mod benches {
         let b = "Philosopher Jean-Paul Sartre";
         bencher.iter(|| {
             strsim::damerau_levenshtein(&a, &b);
+        })
+    }
+
+    #[bench]
+    fn bench_normalized_damerau_levenshtein(bencher: &mut Bencher) {
+        let a = "Philosopher Friedrich Nietzsche";
+        let b = "Philosopher Jean-Paul Sartre";
+        bencher.iter(|| {
+            strsim::normalized_damerau_levenshtein(&a, &b);
         })
     }
 }
