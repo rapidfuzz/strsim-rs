@@ -11,7 +11,7 @@
 ```toml
 # Cargo.toml
 [dependencies]
-strsim = "0.7.0"
+strsim = "0.8.0"
 ```
 
 ### [Documentation](https://docs.rs/strsim/)
@@ -23,8 +23,9 @@ version in the
 ```rust
 extern crate strsim;
 
-use strsim::{hamming, levenshtein, normalized_levenshtein, osa_distance, damerau_levenshtein,
-             normalized_damerau_levenshtein, jaro, jaro_winkler};
+use strsim::{hamming, levenshtein, normalized_levenshtein, osa_distance,
+             damerau_levenshtein, normalized_damerau_levenshtein, jaro,
+             jaro_winkler};
 
 fn main() {
     match hamming("hamming", "hammers") {

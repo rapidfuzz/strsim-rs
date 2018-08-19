@@ -171,7 +171,8 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
     result
 }
 
-/// Calculates normalized score of the Levenshtein algorithm
+/// Calculates a normalized score of the Levenshtein algorithm between 0.0 and
+/// 1.0 (inclusive), where 1.0 means the strings are the same.
 ///
 /// ```
 /// use strsim::normalized_levenshtein;
@@ -313,7 +314,8 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
     distances[a_len + 1][b_len + 1]
 }
 
-/// Calculates normalized score of the Damerau–Levenshtein algorithm
+/// Calculates a normalized score of the Damerau–Levenshtein algorithm between
+/// 0.0 and 1.0 (inclusive), where 1.0 means the strings are the same.
 ///
 /// ```
 /// use strsim::normalized_damerau_levenshtein;
