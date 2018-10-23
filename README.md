@@ -7,19 +7,25 @@
   - [Damerau-Levenshtein] - distance & normalized
   - [Jaro and Jaro-Winkler] - this implementation of Jaro-Winkler does not limit the common prefix length
 
-### Installation
+The normalized versions return values between `0.0` and `1.0`, where `1.0` means
+an exact match.
+
+## Installation
+
+`strsim` is available on [crates.io](https://crates.io/crates/strsim). Add it to
+your `Cargo.toml`:
 ```toml
-# Cargo.toml
 [dependencies]
 strsim = "0.8.0"
 ```
 
-### [Documentation](https://docs.rs/strsim/)
-You can change the version in the url to see the documentation for an older
-version in the
-[changelog](https://github.com/dguo/strsim-rs/blob/master/CHANGELOG.md).
+## Usage
 
-### Usage
+Go to [Docs.rs](https://docs.rs/strsim/) for the full documentation. You can
+also clone the repo, and run `$ cargo doc --open`.
+
+### Examples
+
 ```rust
 extern crate strsim;
 
@@ -33,31 +39,34 @@ fn main() {
         Err(why) => panic!("{:?}", why)
     }
 
-    assert_eq!(3, levenshtein("kitten", "sitting"));
+    assert_eq!(levenshtein("kitten", "sitting"), 3);
 
     assert!((normalized_levenshtein("kitten", "sitting") - 0.57142).abs() < 0.00001);
 
-    assert_eq!(3, osa_distance("ac", "cba"));
+    assert_eq!(osa_distance("ac", "cba"), 3);
 
-    assert_eq!(2, damerau_levenshtein("ac", "cba"));
+    assert_eq!(damerau_levenshtein("ac", "cba"), 2);
 
-    assert!((normalized_damerau_levenshtein("levenshtein", "löwenbräu") - 0.27272).abs() < 0.00001)
+    assert!((normalized_damerau_levenshtein("levenshtein", "löwenbräu") - 0.27272).abs() <
+            0.00001);
 
-    assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() <
-            0.001);
+    assert!((jaro("Friedrich Nietzsche", "Jean-Paul Sartre") - 0.392).abs() <
+            0.00001);
 
-    assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() <
-            0.001);
+    assert!((jaro_winkler("cheeseburger", "cheese fries") - 0.911).abs() <
+            0.00001);
 }
 ```
 
-### Development
+## Contributing
+
 If you don't want to install Rust itself, you can run `$ ./dev` for a
 development CLI if you have [Docker] installed.
 
-Benchmarks require a Nightly toolchain. They are run by `cargo +nightly bench`.
+Benchmarks require a Nightly toolchain. Run `$ cargo +nightly bench`.
 
-### License
+## License
+
 [MIT](https://github.com/dguo/strsim-rs/blob/master/LICENSE)
 
 [string similarity metrics]:http://en.wikipedia.org/wiki/String_metric
