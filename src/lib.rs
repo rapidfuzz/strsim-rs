@@ -3,11 +3,25 @@
 use std::char;
 use std::cmp::{max, min};
 use std::collections::HashMap;
+use std::error::Error;
+use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug, PartialEq)]
 pub enum StrSimError {
-    DifferentLengthArgs
+    DifferentLengthArgs,
 }
+
+impl Display for StrSimError {
+    fn fmt(&self, fmt: &mut Formatter) -> Result<(), fmt::Error> {
+        let text = match self {
+            StrSimError::DifferentLengthArgs => "Differing length arguments provided",
+        };
+
+        write!(fmt, "{}", text)
+    }
+}
+
+impl Error for StrSimError {}
 
 pub type HammingResult = Result<usize, StrSimError>;
 
