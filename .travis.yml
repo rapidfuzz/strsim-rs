@@ -1,5 +1,9 @@
 language: rust
 
+os:
+    - linux
+    - windows
+
 rust:
     - nightly
     - beta
@@ -8,4 +12,3 @@ rust:
 matrix:
     allow_failures:
         - rust: nightly
-
