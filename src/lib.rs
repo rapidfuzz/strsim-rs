@@ -5,6 +5,8 @@ use std::cmp::{max, min};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
+use std::hash::Hash;
+use std::str::Chars;
 
 #[derive(Debug, PartialEq)]
 pub enum StrSimError {
@@ -25,19 +27,14 @@ impl Error for StrSimError {}
 
 pub type HammingResult = Result<usize, StrSimError>;
 
-/// Calculates the number of positions in the two strings where the characters
-/// differ. Returns an error if the strings have different lengths.
-///
-/// ```
-/// use strsim::hamming;
-///
-/// match hamming("hamming", "hammers") {
-///     Ok(distance) => assert_eq!(3, distance),
-///     Err(why) => panic!("{:?}", why)
-/// }
-/// ```
-pub fn hamming(a: &str, b: &str) -> HammingResult {
-    let (mut ita, mut itb, mut count) = (a.chars(), b.chars(), 0);
+/// Calculates the number of positions in the two sequences where the elements
+/// differ. Returns an error if the sequences have different lengths.
+pub fn hamming_generic<Iter1, Iter2, Elem1, Elem2>(a: Iter1, b: Iter2) -> HammingResult
+    where Iter1: IntoIterator<Item=Elem1>,
+          Iter2: IntoIterator<Item=Elem2>,
+          Elem1: PartialEq<Elem2> {
+    let (mut ita, mut itb) = (a.into_iter(), b.into_iter());
+    let mut count = 0;
     loop {
         match (ita.next(), itb.next()){
             (Some(x), Some(y)) => if x != y { count += 1 },
@@ -47,24 +44,34 @@ pub fn hamming(a: &str, b: &str) -> HammingResult {
     }
 }
 
-/// Calculates the Jaro similarity between two strings. The returned value
-/// is between 0.0 and 1.0 (higher value means more similar).
+/// Calculates the number of positions in the two strings where the characters
+/// differ. Returns an error if the strings have different lengths.
 ///
 /// ```
-/// use strsim::jaro;
+/// use strsim::{hamming, StrSimError::DifferentLengthArgs};
 ///
-/// assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() <
-///         0.001);
+/// assert_eq!(Ok(3), hamming("hamming", "hammers"));
+///
+/// assert_eq!(Err(DifferentLengthArgs), hamming("hamming", "ham"));
 /// ```
-pub fn jaro(a: &str, b: &str) -> f64 {
-    if a == b { return 1.0; }
+pub fn hamming(a: &str, b: &str) -> HammingResult {
+    hamming_generic(a.chars(), b.chars())
+}
 
-    let a_len = a.chars().count();
-    let b_len = b.chars().count();
+/// Calculates the Jaro similarity between two sequences. The returned value
+/// is between 0.0 and 1.0 (higher value means more similar).
+pub fn jaro_generic<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Iter2) -> f64
+    where &'a Iter1: IntoIterator<Item=Elem1>,
+          &'b Iter2: IntoIterator<Item=Elem2>,
+          Elem1: PartialEq<Elem2> {
+    let a_len = a.into_iter().count();
+    let b_len = b.into_iter().count();
 
     // The check for lengths of one here is to prevent integer overflow when
     // calculating the search range.
-    if a_len == 0 || b_len == 0 || (a_len == 1 && b_len == 1) {
+    if a_len == 0 && b_len == 0 {
+        return 1.0
+    } else if a_len == 0 || b_len == 0 || (a_len == 1 && b_len == 1) {
         return 0.0;
     }
 
@@ -79,7 +86,7 @@ pub fn jaro(a: &str, b: &str) -> f64 {
     let mut transpositions = 0.0;
     let mut b_match_index = 0;
 
-    for (i, a_char) in a.chars().enumerate() {
+    for (i, a_char) in a.into_iter().enumerate() {
         let min_bound =
             // prevent integer wrapping
             if i > search_range {
@@ -94,7 +101,7 @@ pub fn jaro(a: &str, b: &str) -> f64 {
             continue;
         }
 
-        for (j, b_char) in b.chars().enumerate() {
+        for (j, b_char) in b.into_iter().enumerate() {
             if min_bound <= j && j <= max_bound && a_char == b_char &&
                !b_consumed[j] {
                 b_consumed[j] = true;
@@ -119,21 +126,41 @@ pub fn jaro(a: &str, b: &str) -> f64 {
     }
 }
 
-/// Like Jaro but gives a boost to strings that have a common prefix.
+struct StringWrapper<'a>(&'a str);
+
+impl<'a, 'b> IntoIterator for &'a StringWrapper<'b> {
+    type Item = char;
+    type IntoIter = Chars<'b>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.chars()
+    }
+}
+
+/// Calculates the Jaro similarity between two strings. The returned value
+/// is between 0.0 and 1.0 (higher value means more similar).
 ///
 /// ```
-/// use strsim::jaro_winkler;
+/// use strsim::jaro;
 ///
-/// assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() <
+/// assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() <
 ///         0.001);
 /// ```
-pub fn jaro_winkler(a: &str, b: &str) -> f64 {
-    let jaro_distance = jaro(a, b);
+pub fn jaro(a: &str, b: &str) -> f64 {
+    jaro_generic(&StringWrapper(a), &StringWrapper(b))
+}
+
+/// Like Jaro but gives a boost to sequences that have a common prefix.
+pub fn jaro_winkler_generic<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Iter2) -> f64
+    where &'a Iter1: IntoIterator<Item=Elem1>,
+          &'b Iter2: IntoIterator<Item=Elem2>,
+          Elem1: PartialEq<Elem2> {
+    let jaro_distance = jaro_generic(a, b);
 
     // Don't limit the length of the common prefix
-    let prefix_length = a.chars()
-                         .zip(b.chars())
-                         .take_while(|&(a_char, b_char)| a_char == b_char)
+    let prefix_length = a.into_iter()
+        .zip(b.into_iter())
+        .take_while(|&(ref a_char, ref b_char)| a_char == b_char)
                          .count();
 
     let jaro_winkler_distance =
@@ -146,19 +173,32 @@ pub fn jaro_winkler(a: &str, b: &str) -> f64 {
     }
 }
 
-/// Calculates the minimum number of insertions, deletions, and substitutions
-/// required to change one string into the other.
+/// Like Jaro but gives a boost to strings that have a common prefix.
 ///
 /// ```
-/// use strsim::levenshtein;
+/// use strsim::jaro_winkler;
 ///
-/// assert_eq!(3, levenshtein("kitten", "sitting"));
+/// assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() <
+///         0.001);
 /// ```
-pub fn levenshtein(a: &str, b: &str) -> usize {
-    if a == b { return 0; }
+pub fn jaro_winkler(a: &str, b: &str) -> f64 {
+    jaro_winkler_generic(&StringWrapper(a), &StringWrapper(b))
+}
 
-    let a_len = a.chars().count();
-    let b_len = b.chars().count();
+/// Calculates the minimum number of insertions, deletions, and substitutions
+/// required to change one sequence into the other.
+///
+/// ```
+/// use strsim::levenshtein_generic;
+///
+/// assert_eq!(3, levenshtein_generic(&[1,2,3], &[1,2,3,4,5,6]));
+/// ```
+pub fn levenshtein_generic<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Iter2) -> usize
+    where &'a Iter1: IntoIterator<Item=Elem1>,
+          &'b Iter2: IntoIterator<Item=Elem2>,
+          Elem1: PartialEq<Elem2> {
+    let a_len = a.into_iter().count();
+    let b_len = b.into_iter().count();
 
     if a_len == 0 { return b_len; }
     if b_len == 0 { return a_len; }
@@ -169,11 +209,11 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
     let mut distance_a;
     let mut distance_b;
 
-    for (i, a_char) in a.chars().enumerate() {
+    for (i, a_char) in a.into_iter().enumerate() {
         result = i;
         distance_b = i;
 
-        for (j, b_char) in b.chars().enumerate() {
+        for (j, b_char) in b.into_iter().enumerate() {
             let cost = if a_char == b_char { 0 } else { 1 };
             distance_a = distance_b + cost;
             distance_b = cache[j];
@@ -183,6 +223,18 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
     }
 
     result
+}
+
+/// Calculates the minimum number of insertions, deletions, and substitutions
+/// required to change one string into the other.
+///
+/// ```
+/// use strsim::levenshtein;
+///
+/// assert_eq!(3, levenshtein("kitten", "sitting"));
+/// ```
+pub fn levenshtein(a: &str, b: &str) -> usize {
+    levenshtein_generic(&StringWrapper(a), &StringWrapper(b))
 }
 
 /// Calculates a normalized score of the Levenshtein algorithm between 0.0 and
@@ -262,15 +314,12 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
 /// number of times, and the triangle inequality holds.
 ///
 /// ```
-/// use strsim::damerau_levenshtein;
+/// use strsim::damerau_levenshtein_generic;
 ///
-/// assert_eq!(2, damerau_levenshtein("ab", "bca"));
+/// assert_eq!(2, damerau_levenshtein_generic(&[1,2], &[2,3,1]));
 /// ```
-pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
-    if a == b { return 0; }
-
-    let a_chars: Vec<char> = a.chars().collect();
-    let b_chars: Vec<char> = b.chars().collect();
+pub fn damerau_levenshtein_generic<Elem>(a_chars: &[Elem], b_chars: &[Elem]) -> usize
+    where Elem: Eq + Hash + Clone {
     let a_len = a_chars.len();
     let b_len = b_chars.len();
 
@@ -291,7 +340,7 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
         distances[1][j + 1] = j;
     }
 
-    let mut chars: HashMap<char, usize> = HashMap::new();
+    let mut chars: HashMap<Elem, usize> = HashMap::new();
 
     for i in 1..(a_len + 1) {
         let mut db = 0;
@@ -322,10 +371,23 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
                                           transposition_cost)));
         }
 
-        chars.insert(a_chars[i - 1], i);
+        chars.insert(a_chars[i - 1].clone(), i);
     }
 
     distances[a_len + 1][b_len + 1]
+}
+
+/// Like optimal string alignment, but substrings can be edited an unlimited
+/// number of times, and the triangle inequality holds.
+///
+/// ```
+/// use strsim::damerau_levenshtein;
+///
+/// assert_eq!(2, damerau_levenshtein("ab", "bca"));
+/// ```
+pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
+    let (x, y): (Vec<_>, Vec<_>) = (a.chars().collect(), b.chars().collect());
+    damerau_levenshtein_generic(x.as_slice(), y.as_slice())
 }
 
 /// Calculates a normalized score of the Damerau–Levenshtein algorithm between
@@ -351,52 +413,46 @@ pub fn normalized_damerau_levenshtein(a: &str, b: &str) -> f64 {
 mod tests {
     use super::*;
 
+    fn assert_hamming_dist(dist: usize, str1: &str, str2: &str) {
+        assert_eq!(Ok(dist), hamming(str1, str2));
+    }
+
     #[test]
     fn hamming_empty() {
-        match hamming("", "") {
-            Ok(distance) => { assert_eq!(0, distance); },
-            Err(why) => { panic!("{:?}", why); }
-        }
+        assert_hamming_dist(0, "", "")
     }
 
     #[test]
     fn hamming_same() {
-        match hamming("hamming", "hamming") {
-            Ok(distance) => { assert_eq!(0, distance); },
-            Err(why) => { panic!("{:?}", why); }
-        }
+        assert_hamming_dist(0, "hamming", "hamming")
+    }
+
+    #[test]
+    fn hamming_numbers() {
+        assert_eq!(Ok(1), hamming_generic(&[1, 2, 4], &[1, 2, 3]));
     }
 
     #[test]
     fn hamming_diff() {
-        match hamming("hamming", "hammers") {
-            Ok(distance) => { assert_eq!(3, distance); },
-            Err(why) => { panic!("{:?}", why); }
-        }
+        assert_hamming_dist(3, "hamming", "hammers")
     }
 
     #[test]
     fn hamming_diff_multibyte() {
-        match hamming("hamming", "h香mmüng") {
-            Ok(distance) => { assert_eq!(2, distance); },
-            Err(why) => { panic!("{:?}", why); }
-        }
+        assert_hamming_dist(2, "hamming", "h香mmüng");
     }
 
     #[test]
     fn hamming_unequal_length() {
-        match hamming("ham", "hamming") {
-            Ok(_) => { panic!(); },
-            Err(why) => { assert_eq!(why, StrSimError::DifferentLengthArgs); }
-        }
+        assert_eq!(
+            Err(StrSimError::DifferentLengthArgs),
+            hamming_generic("ham".chars(), "hamming".chars())
+        );
     }
 
     #[test]
     fn hamming_names() {
-        match hamming("Friedrich Nietzs", "Jean-Paul Sartre") {
-            Ok(distance) => { assert_eq!(14, distance); },
-            Err(why) => { panic!("{:?}", why); }
-        }
+        assert_hamming_dist(14, "Friedrich Nietzs", "Jean-Paul Sartre")
     }
 
     #[test]
@@ -433,6 +489,11 @@ mod tests {
     #[test]
     fn jaro_diff_one_character() {
         assert_eq!(0.0, jaro("a", "b"));
+    }
+
+    #[test]
+    fn jaro_generic_diff() {
+        assert_eq!(0.0, jaro_generic(&[1, 2], &[3, 4]));
     }
 
     #[test]

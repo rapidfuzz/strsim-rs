@@ -5,17 +5,17 @@
 extern crate strsim;
 
 mod benches {
+    use self::test::Bencher;
     use super::*;
 
     extern crate test;
-    use self::test::Bencher;
 
     #[bench]
     fn bench_hamming(bencher: &mut Bencher) {
         let a = "ACAAGATGCCATTGTCCCCCGGCCTCCTGCTGCTGCTGCTCTCCGGGG";
         let b = "CCTGGAGGGTGGCCCCACCGGCCGAGACAGCGAGCATATGCAGGAAGC";
         bencher.iter(|| {
-            strsim::hamming(&a, &b).unwrap();
+            strsim::hamming(a, b).unwrap();
         })
     }
 
@@ -43,6 +43,13 @@ mod benches {
         let b = "Philosopher Jean-Paul Sartre";
         bencher.iter(|| {
             strsim::levenshtein(&a, &b);
+        })
+    }
+
+    #[bench]
+    fn bench_levenshtein_on_u8(bencher: &mut Bencher) {
+        bencher.iter(|| {
+            strsim::levenshtein_generic(&vec![0u8; 30], &vec![7u8; 31]);
         })
     }
 
