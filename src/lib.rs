@@ -34,7 +34,7 @@ impl Error for StrSimError {}
 pub type HammingResult = Result<usize, StrSimError>;
 
 /// Calculates the number of positions in the two strings where the characters
-/// differ. Returns an error if the strings have different lengths.
+/// differ. Returns an error if the strings have different char counts.
 ///
 /// ```
 /// use strsim::hamming;
