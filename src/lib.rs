@@ -188,37 +188,7 @@ pub fn jaro_winkler(a: &str, b: &str) -> f64 {
 /// assert_eq!(3, levenshtein("kitten", "sitting"));
 /// ```
 pub fn levenshtein(a: &str, b: &str) -> usize {
-    let (_, a, b) = split_on_common_prefix(a, b);
-
-    let b_numchars = {
-        match (a.is_empty(), b.is_empty()) {
-            (true, true) => { return 0; },
-            (true, _) => { return b.chars().count(); },
-            (_, true) => { return a.chars().count(); },
-            _ => b.chars().count(),
-        }
-    };
-
-    let mut cache: Vec<usize> = (1..=b_numchars).collect();
-
-    let mut result = 0;
-    let mut distance_a;
-    let mut distance_b;
-
-    for (i, a_char) in a.chars().enumerate() {
-        result = i;
-        distance_b = i;
-
-        for (j, b_char) in b.chars().enumerate() {
-            let cost = if a_char == b_char { 0 } else { 1 };
-            distance_a = distance_b + cost;
-            distance_b = cache[j];
-            result = min(result + 1, min(distance_a, distance_b + 1));
-            cache[j] = result;
-        }
-    }
-
-    result
+    levenshtein_inner(a, b, None, None)
 }
 
 /// Calculate a “normalized [Levenshtein](http://en.wikipedia.org/wiki/Levenshtein_distance)”
@@ -243,7 +213,48 @@ pub fn normalized_levenshtein(a: &str, b: &str) -> f64 {
     if a.is_empty() && b.is_empty() {
         return 1.0;
     }
-    1.0 - (levenshtein(a, b) as f64) / (a.chars().count().max(b.chars().count()) as f64)
+    let a_numchars = a.chars().count();
+    let b_numchars = b.chars().count();
+    let levenshtein =
+        levenshtein_inner(a, b, Some(a_numchars), Some(b_numchars));
+    1.0 - (levenshtein as f64) / (a_numchars.max(b_numchars) as f64)
+}
+
+/// Inner algorithm, used by both standard and normalised forms
+fn levenshtein_inner(a: &str, b: &str, a_numchars: Option<usize>,
+    b_numchars: Option<usize>) -> usize
+{
+    let (_, a, b) = split_on_common_prefix(a, b);
+
+    let b_numchars = {
+        match (a.is_empty(), b.is_empty()) {
+            (true, true) => { return 0; },
+            (true, _) => { return b_numchars.unwrap_or(b.chars().count()); },
+            (_, true) => { return a_numchars.unwrap_or(a.chars().count()); },
+            _ => b_numchars.unwrap_or(b.chars().count()),
+        }
+    };
+
+    let mut cache: Vec<usize> = (1..=b_numchars).collect();
+
+    let mut result = 0;
+    let mut distance_a;
+    let mut distance_b;
+
+    for (i, a_char) in a.chars().enumerate() {
+        result = i;
+        distance_b = i;
+
+        for (j, b_char) in b.chars().enumerate() {
+            let cost = if a_char == b_char { 0 } else { 1 };
+            distance_a = distance_b + cost;
+            distance_b = cache[j];
+            result = min(result + 1, min(distance_a, distance_b + 1));
+            cache[j] = result;
+        }
+    }
+
+    result
 }
 
 /// Calculate a “[Optimal string alignment](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Optimal_string_alignment_distance)”
