@@ -11,48 +11,30 @@ use strsim::{hamming, StrSimError};
 
 #[test]
 fn empty() {
-    match hamming("", "") {
-        Ok(distance) => { assert_eq!(0, distance); },
-        Err(why) => { panic!("{:?}", why); }
-    }
+    assert_eq!(Ok(0), hamming("", ""));
 }
 
 #[test]
 fn same() {
-    match hamming("hamming", "hamming") {
-        Ok(distance) => { assert_eq!(0, distance); },
-        Err(why) => { panic!("{:?}", why); }
-    }
+    assert_eq!(Ok(0), hamming("hamming", "hamming"));
 }
 
 #[test]
 fn diff() {
-    match hamming("hamming", "hammers") {
-        Ok(distance) => { assert_eq!(3, distance); },
-        Err(why) => { panic!("{:?}", why); }
-    }
+    assert_eq!(Ok(3), hamming("hamming", "hammers"));
 }
 
 #[test]
 fn diff_multibyte() {
-    match hamming("hamming", "h香mmüng") {
-        Ok(distance) => { assert_eq!(2, distance); },
-        Err(why) => { panic!("{:?}", why); }
-    }
+    assert_eq!(Ok(2), hamming("hamming", "h香mmüng"));
 }
 
 #[test]
 fn unequal_length() {
-    match hamming("ham", "hamming") {
-        Ok(_) => { panic!(); },
-        Err(why) => { assert_eq!(why, StrSimError::DifferentLengthArgs); }
-    }
+    assert_eq!(Err(StrSimError::DifferentLengthArgs), hamming("ham", "hamming"));
 }
 
 #[test]
 fn names() {
-    match hamming("Friedrich Nietzs", "Jean-Paul Sartre") {
-        Ok(distance) => { assert_eq!(14, distance); },
-        Err(why) => { panic!("{:?}", why); }
-    }
+    assert_eq!(Ok(14), hamming("Friedrich Nietzs", "Jean-Paul Sartre"));
 }

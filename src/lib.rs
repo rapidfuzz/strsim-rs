@@ -44,10 +44,7 @@ pub type HammingResult = Result<usize, StrSimError>;
 /// ```
 /// use strsim::hamming;
 ///
-/// match hamming("hamming", "hammers") {
-///     Ok(distance) => assert_eq!(3, distance),
-///     Err(why) => panic!("{:?}", why)
-/// }
+/// assert_eq!(Ok(3), hamming("hamming", "hammers"));
 /// ```
 pub fn hamming(a: &str, b: &str) -> HammingResult {
     let (mut ita, mut itb, mut count) = (a.chars(), b.chars(), 0);
