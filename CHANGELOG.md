@@ -3,6 +3,12 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org).
 
 ## [Unreleased]
 ### Changed
+- Optimisations to metric implementations:
+   - Avoided char counting where unnecessary
+   - Avoided comparing portions of strings twice in Levenshtein variants with
+     equal length but non-identical strings
+   - Avoided repeated char counting with `normalized_levenshtein`
+   - Avoided using floats for counting in Jaro, converting to float at end instead
 - Moved tests out to test directory and reorganised
 - Simplified the Hamming tests
 - Simplified and improved failure output of the Jaro/Jaro-Winkler tests
