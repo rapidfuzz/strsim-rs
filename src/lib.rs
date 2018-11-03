@@ -341,10 +341,11 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
 /// assert_eq!(2, damerau_levenshtein("ab", "bca"));
 /// ```
 pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
-    if a == b { return 0; }
+    let (_, a, b) = split_on_common_prefix(a, b);
 
     let (a_chars, b_chars, a_numchars, b_numchars) = {
         match (a.is_empty(), b.is_empty()) {
+            (true, true) => { return 0; },
             (true, _) => { return b.chars().count(); },
             (_, true) => { return a.chars().count(); },
             _ => {
