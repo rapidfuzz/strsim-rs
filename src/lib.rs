@@ -8,6 +8,8 @@
 
 //! This library implements [string similarity metrics](http://en.wikipedia.org/wiki/String_metric).
 
+mod helpers;
+
 use std::char;
 use std::cmp::{max, min};
 use std::collections::HashMap;
