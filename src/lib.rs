@@ -208,10 +208,6 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
 /// use strsim::normalized_levenshtein;
 ///
 /// assert!((normalized_levenshtein("kitten", "sitting") - 0.57142).abs() < 0.00001);
-/// assert!((normalized_levenshtein("", "") - 1.0).abs() < 0.00001);
-/// assert!(normalized_levenshtein("", "second").abs() < 0.00001);
-/// assert!(normalized_levenshtein("first", "").abs() < 0.00001);
-/// assert!((normalized_levenshtein("string", "string") - 1.0).abs() < 0.00001);
 /// ```
 pub fn normalized_levenshtein(a: &str, b: &str) -> f64 {
     if a.is_empty() && b.is_empty() {
@@ -421,10 +417,6 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
 /// use strsim::normalized_damerau_levenshtein;
 ///
 /// assert!((normalized_damerau_levenshtein("levenshtein", "löwenbräu") - 0.27272).abs() < 0.00001);
-/// assert!((normalized_damerau_levenshtein("", "") - 1.0).abs() < 0.00001);
-/// assert!(normalized_damerau_levenshtein("", "flower").abs() < 0.00001);
-/// assert!(normalized_damerau_levenshtein("tree", "").abs() < 0.00001);
-/// assert!((normalized_damerau_levenshtein("sunglasses", "sunglasses") - 1.0).abs() < 0.00001);
 /// ```
 pub fn normalized_damerau_levenshtein(a: &str, b: &str) -> f64 {
     if a.is_empty() && b.is_empty() {
