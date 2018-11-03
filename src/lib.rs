@@ -75,19 +75,19 @@ pub fn hamming(a: &str, b: &str) -> HammingResult {
 pub fn jaro(a: &str, b: &str) -> f64 {
     if a == b { return 1.0; }
 
-    let a_len = a.chars().count();
-    let b_len = b.chars().count();
+    let a_numchars = a.chars().count();
+    let b_numchars = b.chars().count();
 
     // The check for lengths of one here is to prevent integer overflow when
     // calculating the search range.
-    if a_len == 0 || b_len == 0 || (a_len == 1 && b_len == 1) {
+    if a_numchars == 0 || b_numchars == 0 || (a_numchars == 1 && b_numchars == 1) {
         return 0.0;
     }
 
-    let search_range = (max(a_len, b_len) / 2) - 1;
+    let search_range = (max(a_numchars, b_numchars) / 2) - 1;
 
-    let mut b_consumed = Vec::with_capacity(b_len);
-    for _ in 0..b_len {
+    let mut b_consumed = Vec::with_capacity(b_numchars);
+    for _ in 0..b_numchars {
         b_consumed.push(false);
     }
     let mut matches = 0.0;
@@ -104,7 +104,7 @@ pub fn jaro(a: &str, b: &str) -> f64 {
                 0
             };
 
-        let max_bound = min(b_len - 1, i + search_range);
+        let max_bound = min(b_numchars - 1, i + search_range);
 
         if min_bound > max_bound {
             continue;
@@ -130,8 +130,8 @@ pub fn jaro(a: &str, b: &str) -> f64 {
     if matches == 0.0 {
         0.0
     } else {
-        (1.0 / 3.0) * ((matches / a_len as f64) +
-                       (matches / b_len as f64) +
+        (1.0 / 3.0) * ((matches / a_numchars as f64) +
+                       (matches / b_numchars as f64) +
                        ((matches - transpositions) / matches))
     }
 }
@@ -186,13 +186,13 @@ pub fn jaro_winkler(a: &str, b: &str) -> f64 {
 pub fn levenshtein(a: &str, b: &str) -> usize {
     if a == b { return 0; }
 
-    let a_len = a.chars().count();
-    let b_len = b.chars().count();
+    let a_numchars = a.chars().count();
+    let b_numchars = b.chars().count();
 
-    if a_len == 0 { return b_len; }
-    if b_len == 0 { return a_len; }
+    if a_numchars == 0 { return b_numchars; }
+    if b_numchars == 0 { return a_numchars; }
 
-    let mut cache: Vec<usize> = (1..=b_len).collect();
+    let mut cache: Vec<usize> = (1..=b_numchars).collect();
 
     let mut result = 0;
     let mut distance_a;
@@ -254,20 +254,20 @@ pub fn normalized_levenshtein(a: &str, b: &str) -> f64 {
 /// assert_eq!(3, osa_distance("ab", "bca"));
 /// ```
 pub fn osa_distance(a: &str, b: &str) -> usize {
-    let a_len = a.chars().count();
-    let b_len = b.chars().count();
+    let a_numchars = a.chars().count();
+    let b_numchars = b.chars().count();
     if a == b { return 0; }
-    else if a_len == 0 { return b_len; }
-    else if b_len == 0 { return a_len; }
+    else if a_numchars == 0 { return b_numchars; }
+    else if b_numchars == 0 { return a_numchars; }
 
-    let mut prev_two_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
-    let mut prev_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
-    let mut curr_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
+    let mut prev_two_distances: Vec<usize> = Vec::with_capacity(b_numchars + 1);
+    let mut prev_distances: Vec<usize> = Vec::with_capacity(b_numchars + 1);
+    let mut curr_distances: Vec<usize> = Vec::with_capacity(b_numchars + 1);
 
     let mut prev_a_char = char::MAX;
     let mut prev_b_char = char::MAX;
 
-    for i in 0..=b_len {
+    for i in 0..=b_numchars {
         prev_two_distances.push(i);
         prev_distances.push(i);
         curr_distances.push(0);
@@ -296,7 +296,7 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
         prev_a_char = a_char;
     }
 
-    curr_distances[b_len]
+    curr_distances[b_numchars]
 }
 
 /// Calculate a “[Damerau-Levenshtein](http://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance)”
@@ -318,32 +318,32 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
 
     let a_chars: Vec<char> = a.chars().collect();
     let b_chars: Vec<char> = b.chars().collect();
-    let a_len = a_chars.len();
-    let b_len = b_chars.len();
+    let a_numchars = a_chars.len();
+    let b_numchars = b_chars.len();
 
-    if a_len == 0 { return b_len; }
-    if b_len == 0 { return a_len; }
+    if a_numchars == 0 { return b_numchars; }
+    if b_numchars == 0 { return a_numchars; }
 
-    let mut distances = vec![vec![0; b_len + 2]; a_len + 2];
-    let max_distance = a_len + b_len;
+    let mut distances = vec![vec![0; b_numchars + 2]; a_numchars + 2];
+    let max_distance = a_numchars + b_numchars;
     distances[0][0] = max_distance;
 
-    for i in 0..=a_len {
+    for i in 0..=a_numchars {
         distances[i + 1][0] = max_distance;
         distances[i + 1][1] = i;
     }
 
-    for j in 0..=b_len {
+    for j in 0..=b_numchars {
         distances[0][j + 1] = max_distance;
         distances[1][j + 1] = j;
     }
 
     let mut chars: HashMap<char, usize> = HashMap::new();
 
-    for i in 1..=a_len {
+    for i in 1..=a_numchars {
         let mut db = 0;
 
-        for j in 1..=b_len {
+        for j in 1..=b_numchars {
             let k = match chars.get(&b_chars[j - 1]) {
                 Some(value) => value.clone(),
                 None => 0
@@ -372,7 +372,7 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
         chars.insert(a_chars[i - 1], i);
     }
 
-    distances[a_len + 1][b_len + 1]
+    distances[a_numchars + 1][b_numchars + 1]
 }
 
 /// Calculate a “normalized [Damerau-Levenshtein](http://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance)”
