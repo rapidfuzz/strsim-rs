@@ -6,7 +6,7 @@
 // license either in the LICENSE file, or alternatively at
 // <http://opensource.org/licenses/MIT>.
 
-//! This library implements string similarity metrics.
+//! This library implements [string similarity metrics](http://en.wikipedia.org/wiki/String_metric).
 
 use std::char;
 use std::cmp::{max, min};
@@ -33,6 +33,8 @@ impl Error for StrSimError {}
 
 pub type HammingResult = Result<usize, StrSimError>;
 
+/// Calculate a “[Hamming](http://en.wikipedia.org/wiki/Hamming_distance)” metric.
+///
 /// Calculates the number of positions in the two strings where the characters
 /// differ. Returns an error if the strings have different char counts.
 ///
@@ -58,8 +60,11 @@ pub fn hamming(a: &str, b: &str) -> HammingResult {
     }
 }
 
-/// Calculates the Jaro similarity between two strings. The returned value
-/// is between 0.0 and 1.0 (higher value means more similar).
+/// Calculate a “[Jaro](http://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance)”
+/// metric.
+///
+/// Calculates the “Jaro” similarity between two strings. The returned value
+/// is between `0.0` and `1.0` (higher value means more similar).
 ///
 /// Note: This implementation is based on unicode “scalar values”, not “grapheme
 /// clusters”.
@@ -133,7 +138,10 @@ pub fn jaro(a: &str, b: &str) -> f64 {
     }
 }
 
-/// Like Jaro but gives a boost to strings that have a common prefix.
+/// Calculate a “[Jaro Winkler](http://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance)”
+/// metric.
+///
+/// Like “Jaro” but gives a boost to strings that have a common prefix.
 ///
 /// Note: This implementation is based on unicode “scalar values”, not “grapheme
 /// clusters”.
@@ -163,6 +171,9 @@ pub fn jaro_winkler(a: &str, b: &str) -> f64 {
     }
 }
 
+/// Calculate a “[Levenshtein](http://en.wikipedia.org/wiki/Levenshtein_distance)”
+/// metric.
+///
 /// Calculates the minimum number of insertions, deletions, and substitutions
 /// required to change one string into the other.
 ///
@@ -205,8 +216,11 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
     result
 }
 
-/// Calculates a normalized score of the Levenshtein algorithm between 0.0 and
-/// 1.0 (inclusive), where 1.0 means the strings are the same.
+/// Calculate a “normalized [Levenshtein](http://en.wikipedia.org/wiki/Levenshtein_distance)”
+/// metric.
+///
+/// Calculates a normalized score of the “Levenshtein” algorithm between `0.0`
+/// and `1.0` (inclusive), where `1.0` means the strings are the same.
 ///
 /// Note: This implementation is based on unicode “scalar values”, not “grapheme
 /// clusters”.
@@ -227,8 +241,11 @@ pub fn normalized_levenshtein(a: &str, b: &str) -> f64 {
     1.0 - (levenshtein(a, b) as f64) / (a.chars().count().max(b.chars().count()) as f64)
 }
 
-/// Like Levenshtein but allows for adjacent transpositions. Each substring can
-/// only be edited once.
+/// Calculate a “[Optimal string alignment](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Optimal_string_alignment_distance)”
+/// metric.
+///
+/// Like “Levenshtein” but allows for adjacent transpositions. Each substring
+/// can only be edited once.
 ///
 /// Note: This implementation is based on unicode “scalar values”, not “grapheme
 /// clusters”.
@@ -283,7 +300,10 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
     curr_distances[b_len]
 }
 
-/// Like optimal string alignment, but substrings can be edited an unlimited
+/// Calculate a “[Damerau-Levenshtein](http://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance)”
+/// metric.
+///
+/// Like “optimal string alignment”, but substrings can be edited an unlimited
 /// number of times, and the triangle inequality holds.
 ///
 /// Note: This implementation is based on unicode “scalar values”, not “grapheme
@@ -356,8 +376,11 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
     distances[a_len + 1][b_len + 1]
 }
 
-/// Calculates a normalized score of the Damerau–Levenshtein algorithm between
-/// 0.0 and 1.0 (inclusive), where 1.0 means the strings are the same.
+/// Calculate a “normalized [Damerau-Levenshtein](http://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance)”
+/// metric.
+///
+/// Calculates a normalized score of the “Damerau–Levenshtein” algorithm between
+/// `0.0` and `1.0` (inclusive), where `1.0` means the strings are the same.
 ///
 /// Note: This implementation is based on unicode “scalar values”, not “grapheme
 /// clusters”.
