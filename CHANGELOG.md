@@ -2,6 +2,8 @@
 This project attempts to adhere to [Semantic Versioning](http://semver.org).
 
 ## [Unreleased]
+### Changed
+- Moved tests out to test directory
 
 ## [0.8.0] - (2018-08-19)
 ### Added
