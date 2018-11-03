@@ -15,6 +15,7 @@ use std::cmp::{max, min};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
+use helpers::split_on_common_prefix;
 
 #[derive(Debug, PartialEq)]
 pub enum StrSimError {
@@ -187,10 +188,11 @@ pub fn jaro_winkler(a: &str, b: &str) -> f64 {
 /// assert_eq!(3, levenshtein("kitten", "sitting"));
 /// ```
 pub fn levenshtein(a: &str, b: &str) -> usize {
-    if a == b { return 0; }
+    let (_, a, b) = split_on_common_prefix(a, b);
 
     let b_numchars = {
         match (a.is_empty(), b.is_empty()) {
+            (true, true) => { return 0; },
             (true, _) => { return b.chars().count(); },
             (_, true) => { return a.chars().count(); },
             _ => b.chars().count(),
