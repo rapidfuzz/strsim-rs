@@ -2,6 +2,8 @@
 This project attempts to adhere to [Semantic Versioning](http://semver.org).
 
 ## [Unreleased]
+Most of the improvements of this release are thanks to [@jnqnfe](https://github.com/jnqnfe)
+
 ### Changed
 - Optimisations to metric implementations:
    - Avoided char counting where unnecessary
