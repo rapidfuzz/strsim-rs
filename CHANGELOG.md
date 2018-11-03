@@ -5,6 +5,7 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org).
 ### Changed
 - Moved tests out to test directory and reorganised
 - Simplified the Hamming tests
+- Simplified and improved failure output of the Jaro/Jaro-Winkler tests
 - Tidied up documentation
 
 ## [0.8.0] - (2018-08-19)
