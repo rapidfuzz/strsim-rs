@@ -421,8 +421,8 @@ mod tests {
 
     #[test]
     fn jaro_multibyte() {
-        assert!((0.818 - jaro("testabctest", "testöঙ香test")) < 0.001);
-        assert!((0.818 - jaro("testöঙ香test", "testabctest")) < 0.001);
+        assert!((0.818 - jaro("testabctest", "testöঙ香test")).abs() < 0.001);
+        assert!((0.818 - jaro("testöঙ香test", "testabctest")).abs() < 0.001);
     }
 
     #[test]
