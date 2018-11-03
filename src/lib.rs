@@ -257,11 +257,11 @@ pub fn normalized_levenshtein(a: &str, b: &str) -> f64 {
 /// assert_eq!(3, osa_distance("ab", "bca"));
 /// ```
 pub fn osa_distance(a: &str, b: &str) -> usize {
+    if a == b { return 0; }
     let a_numchars = a.chars().count();
     let b_numchars = b.chars().count();
-    if a == b { return 0; }
-    else if a_numchars == 0 { return b_numchars; }
-    else if b_numchars == 0 { return a_numchars; }
+    if a_numchars == 0 { return b_numchars; }
+    if b_numchars == 0 { return a_numchars; }
 
     let mut prev_two_distances: Vec<usize> = Vec::with_capacity(b_numchars + 1);
     let mut prev_distances: Vec<usize> = Vec::with_capacity(b_numchars + 1);
