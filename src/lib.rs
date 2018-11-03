@@ -73,6 +73,7 @@ pub fn hamming(a: &str, b: &str) -> HammingResult {
 ///         0.001);
 /// ```
 pub fn jaro(a: &str, b: &str) -> f64 {
+    if a.is_empty() ^ b.is_empty() { return 0.0; }
     if a == b { return 1.0; }
 
     let a_numchars = a.chars().count();
@@ -80,7 +81,7 @@ pub fn jaro(a: &str, b: &str) -> f64 {
 
     // The check for lengths of one here is to prevent integer overflow when
     // calculating the search range.
-    if a_numchars == 0 || b_numchars == 0 || (a_numchars == 1 && b_numchars == 1) {
+    if a_numchars == 1 && b_numchars == 1 {
         return 0.0;
     }
 
