@@ -192,7 +192,7 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
     if a_len == 0 { return b_len; }
     if b_len == 0 { return a_len; }
 
-    let mut cache: Vec<usize> = (1..b_len+1).collect();
+    let mut cache: Vec<usize> = (1..=b_len).collect();
 
     let mut result = 0;
     let mut distance_a;
@@ -267,7 +267,7 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
     let mut prev_a_char = char::MAX;
     let mut prev_b_char = char::MAX;
 
-    for i in 0..(b_len + 1) {
+    for i in 0..=b_len {
         prev_two_distances.push(i);
         prev_distances.push(i);
         curr_distances.push(0);
@@ -328,22 +328,22 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
     let max_distance = a_len + b_len;
     distances[0][0] = max_distance;
 
-    for i in 0..(a_len + 1) {
+    for i in 0..=a_len {
         distances[i + 1][0] = max_distance;
         distances[i + 1][1] = i;
     }
 
-    for j in 0..(b_len + 1) {
+    for j in 0..=b_len {
         distances[0][j + 1] = max_distance;
         distances[1][j + 1] = j;
     }
 
     let mut chars: HashMap<char, usize> = HashMap::new();
 
-    for i in 1..(a_len + 1) {
+    for i in 1..=a_len {
         let mut db = 0;
 
-        for j in 1..(b_len + 1) {
+        for j in 1..=b_len {
             let k = match chars.get(&b_chars[j - 1]) {
                 Some(value) => value.clone(),
                 None => 0
