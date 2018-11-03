@@ -112,7 +112,8 @@ pub fn jaro(a: &str, b: &str) -> f64 {
 
         for (j, b_char) in b.chars().enumerate() {
             if min_bound <= j && j <= max_bound && a_char == b_char &&
-               !b_consumed[j] {
+               !b_consumed[j]
+            {
                 b_consumed[j] = true;
                 matches += 1.0;
 
@@ -281,7 +282,8 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
                                         min(prev_distances[j + 1] + 1,
                                             prev_distances[j] + cost));
             if i > 0 && j > 0 && a_char != b_char &&
-               a_char == prev_b_char && b_char == prev_a_char {
+               a_char == prev_b_char && b_char == prev_a_char
+            {
                 curr_distances[j + 1] = min(curr_distances[j + 1],
                                             prev_two_distances[j - 1] + 1);
             }
