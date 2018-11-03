@@ -36,6 +36,9 @@ pub type HammingResult = Result<usize, StrSimError>;
 /// Calculates the number of positions in the two strings where the characters
 /// differ. Returns an error if the strings have different char counts.
 ///
+/// Note: This implementation is based on unicode “scalar values”, not “grapheme
+/// clusters”.
+///
 /// ```
 /// use strsim::hamming;
 ///
@@ -57,6 +60,9 @@ pub fn hamming(a: &str, b: &str) -> HammingResult {
 
 /// Calculates the Jaro similarity between two strings. The returned value
 /// is between 0.0 and 1.0 (higher value means more similar).
+///
+/// Note: This implementation is based on unicode “scalar values”, not “grapheme
+/// clusters”.
 ///
 /// ```
 /// use strsim::jaro;
@@ -129,6 +135,9 @@ pub fn jaro(a: &str, b: &str) -> f64 {
 
 /// Like Jaro but gives a boost to strings that have a common prefix.
 ///
+/// Note: This implementation is based on unicode “scalar values”, not “grapheme
+/// clusters”.
+///
 /// ```
 /// use strsim::jaro_winkler;
 ///
@@ -156,6 +165,9 @@ pub fn jaro_winkler(a: &str, b: &str) -> f64 {
 
 /// Calculates the minimum number of insertions, deletions, and substitutions
 /// required to change one string into the other.
+///
+/// Note: This implementation is based on unicode “scalar values”, not “grapheme
+/// clusters”.
 ///
 /// ```
 /// use strsim::levenshtein;
@@ -196,6 +208,9 @@ pub fn levenshtein(a: &str, b: &str) -> usize {
 /// Calculates a normalized score of the Levenshtein algorithm between 0.0 and
 /// 1.0 (inclusive), where 1.0 means the strings are the same.
 ///
+/// Note: This implementation is based on unicode “scalar values”, not “grapheme
+/// clusters”.
+///
 /// ```
 /// use strsim::normalized_levenshtein;
 ///
@@ -214,6 +229,9 @@ pub fn normalized_levenshtein(a: &str, b: &str) -> f64 {
 
 /// Like Levenshtein but allows for adjacent transpositions. Each substring can
 /// only be edited once.
+///
+/// Note: This implementation is based on unicode “scalar values”, not “grapheme
+/// clusters”.
 ///
 /// ```
 /// use strsim::osa_distance;
@@ -267,6 +285,9 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
 
 /// Like optimal string alignment, but substrings can be edited an unlimited
 /// number of times, and the triangle inequality holds.
+///
+/// Note: This implementation is based on unicode “scalar values”, not “grapheme
+/// clusters”.
 ///
 /// ```
 /// use strsim::damerau_levenshtein;
@@ -337,6 +358,9 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
 
 /// Calculates a normalized score of the Damerau–Levenshtein algorithm between
 /// 0.0 and 1.0 (inclusive), where 1.0 means the strings are the same.
+///
+/// Note: This implementation is based on unicode “scalar values”, not “grapheme
+/// clusters”.
 ///
 /// ```
 /// use strsim::normalized_damerau_levenshtein;
