@@ -146,6 +146,9 @@ pub fn jaro(a: &str, b: &str) -> f64 {
 ///
 /// Like “Jaro” but gives a boost to strings that have a common prefix.
 ///
+/// Note: This implementation does not place a limit the common prefix length
+/// adjusted for.
+///
 /// Note: This implementation is based on unicode “scalar values”, not “grapheme
 /// clusters”.
 ///
