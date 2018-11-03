@@ -94,9 +94,9 @@ pub fn jaro(a: &str, b: &str) -> f64 {
     for _ in 0..b_numchars {
         b_consumed.push(false);
     }
-    let mut matches = 0.0;
 
-    let mut transpositions = 0.0;
+    let mut matches = 0;
+    let mut transpositions = 0;
     let mut b_match_index = 0;
 
     for (i, a_char) in a.chars().enumerate() {
@@ -119,10 +119,10 @@ pub fn jaro(a: &str, b: &str) -> f64 {
                !b_consumed[j]
             {
                 b_consumed[j] = true;
-                matches += 1.0;
+                matches += 1;
 
                 if j < b_match_index {
-                    transpositions += 1.0;
+                    transpositions += 1;
                 }
                 b_match_index = j;
 
@@ -131,12 +131,13 @@ pub fn jaro(a: &str, b: &str) -> f64 {
         }
     }
 
-    if matches == 0.0 {
+    if matches == 0 {
         0.0
     } else {
+        let matches = matches as f64;
         (1.0 / 3.0) * ((matches / a_numchars as f64) +
                        (matches / b_numchars as f64) +
-                       ((matches - transpositions) / matches))
+                       ((matches - transpositions as f64) / matches))
     }
 }
 
