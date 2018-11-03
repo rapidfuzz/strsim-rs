@@ -15,8 +15,8 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org).
 - Faster Levenshtein implementation (thanks [@wdv4758h](https://github.com/wdv4758h))
 
 ### Removed
-- Remove the "against_vec" functions. They are one-liners now, so they don't
-  seem to add enough value to justify making the API larger. I didn't find
+- Remove the “against_vec” functions. They are one-liners now, so they don’t
+  seem to add enough value to justify making the API larger. I didn’t find
   anybody using them when I skimmed through a GitHub search. If you do use them,
   you can change the calls to something like:
 ```rust

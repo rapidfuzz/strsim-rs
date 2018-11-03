@@ -60,7 +60,7 @@ fn main() {
 
 ## Contributing
 
-If you don't want to install Rust itself, you can run `$ ./dev` for a
+If you don’t want to install Rust itself, you can run `$ ./dev` for a
 development CLI if you have [Docker] installed.
 
 Benchmarks require a Nightly toolchain. Run `$ cargo +nightly bench`.
