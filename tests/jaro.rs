@@ -1,3 +1,10 @@
+// Copyright 2015 Danny Guo
+//
+// Licensed under the MIT license. You may not copy, modify, or distribute this
+// file except in compliance with said license. You can find a copy of this
+// license either in the LICENSE file, or alternatively at
+// <http://opensource.org/licenses/MIT>.
+
 extern crate strsim;
 
 use strsim::jaro;
