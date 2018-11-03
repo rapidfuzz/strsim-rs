@@ -187,11 +187,13 @@ pub fn jaro_winkler(a: &str, b: &str) -> f64 {
 pub fn levenshtein(a: &str, b: &str) -> usize {
     if a == b { return 0; }
 
-    let a_numchars = a.chars().count();
-    let b_numchars = b.chars().count();
-
-    if a_numchars == 0 { return b_numchars; }
-    if b_numchars == 0 { return a_numchars; }
+    let b_numchars = {
+        match (a.is_empty(), b.is_empty()) {
+            (true, _) => { return b.chars().count(); },
+            (_, true) => { return a.chars().count(); },
+            _ => b.chars().count(),
+        }
+    };
 
     let mut cache: Vec<usize> = (1..=b_numchars).collect();
 
