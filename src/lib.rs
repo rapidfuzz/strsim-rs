@@ -321,13 +321,45 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
 /// assert_eq!(2, damerau_levenshtein("ab", "bca"));
 /// ```
 pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
+    damerau_levenshtein_inner(a, b, None, None)
+}
+
+/// Calculate a “normalized [Damerau-Levenshtein](http://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance)”
+/// metric.
+///
+/// Calculates a normalized score of the “Damerau–Levenshtein” algorithm between
+/// `0.0` and `1.0` (inclusive), where `1.0` means the strings are the same.
+///
+/// Note: This implementation is based on unicode “scalar values”, not “grapheme
+/// clusters”.
+///
+/// ```
+/// use strsim::normalized_damerau_levenshtein;
+///
+/// assert!((normalized_damerau_levenshtein("levenshtein", "löwenbräu") - 0.27272).abs() < 0.00001);
+/// ```
+pub fn normalized_damerau_levenshtein(a: &str, b: &str) -> f64 {
+    if a.is_empty() && b.is_empty() {
+        return 1.0;
+    }
+    let a_numchars = a.chars().count();
+    let b_numchars = b.chars().count();
+    let damerau_levenshtein =
+        damerau_levenshtein_inner(a, b, Some(a_numchars), Some(b_numchars));
+    1.0 - (damerau_levenshtein as f64) / (a_numchars.max(b_numchars) as f64)
+}
+
+/// Inner algorithm, used by both standard and normalised forms
+fn damerau_levenshtein_inner(a: &str, b: &str, a_numchars: Option<usize>,
+    b_numchars: Option<usize>) -> usize
+{
     let (_, a, b) = split_on_common_prefix(a, b);
 
     let (a_chars, b_chars, a_numchars, b_numchars) = {
         match (a.is_empty(), b.is_empty()) {
             (true, true) => { return 0; },
-            (true, _) => { return b.chars().count(); },
-            (_, true) => { return a.chars().count(); },
+            (true, _) => { return b_numchars.unwrap_or(b.chars().count()); },
+            (_, true) => { return a_numchars.unwrap_or(a.chars().count()); },
             _ => {
                 let a_chars: Vec<char> = a.chars().collect();
                 let b_chars: Vec<char> = b.chars().collect();
@@ -386,25 +418,4 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
     }
 
     distances[a_numchars + 1][b_numchars + 1]
-}
-
-/// Calculate a “normalized [Damerau-Levenshtein](http://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance)”
-/// metric.
-///
-/// Calculates a normalized score of the “Damerau–Levenshtein” algorithm between
-/// `0.0` and `1.0` (inclusive), where `1.0` means the strings are the same.
-///
-/// Note: This implementation is based on unicode “scalar values”, not “grapheme
-/// clusters”.
-///
-/// ```
-/// use strsim::normalized_damerau_levenshtein;
-///
-/// assert!((normalized_damerau_levenshtein("levenshtein", "löwenbräu") - 0.27272).abs() < 0.00001);
-/// ```
-pub fn normalized_damerau_levenshtein(a: &str, b: &str) -> f64 {
-    if a.is_empty() && b.is_empty() {
-        return 1.0;
-    }
-    1.0 - (damerau_levenshtein(a, b) as f64) / (a.chars().count().max(b.chars().count()) as f64)
 }
