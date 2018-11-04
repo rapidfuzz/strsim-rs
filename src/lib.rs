@@ -91,10 +91,7 @@ pub fn jaro(a: &str, b: &str) -> f64 {
 
     let search_range = (max(a_numchars, b_numchars) / 2) - 1;
 
-    let mut b_consumed = Vec::with_capacity(b_numchars);
-    for _ in 0..b_numchars {
-        b_consumed.push(false);
-    }
+    let mut b_consumed = vec![false; b_numchars];
 
     let mut matches = 0;
     let mut transpositions = 0;
