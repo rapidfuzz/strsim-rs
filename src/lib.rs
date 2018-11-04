@@ -273,17 +273,12 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
         }
     };
 
-    let mut prev_two_distances: Vec<usize> = Vec::with_capacity(b_numchars + 1);
-    let mut prev_distances: Vec<usize> = Vec::with_capacity(b_numchars + 1);
+    let mut prev_two_distances: Vec<usize> = (0..=b_numchars).collect();
+    let mut prev_distances: Vec<usize> = (0..=b_numchars).collect();
     let mut curr_distances: Vec<usize> = vec![0; b_numchars + 1];
 
     let mut prev_a_char = char::MAX;
     let mut prev_b_char = char::MAX;
-
-    for i in 0..=b_numchars {
-        prev_two_distances.push(i);
-        prev_distances.push(i);
-    }
 
     for (i, a_char) in a.chars().enumerate() {
         curr_distances[0] = i + 1;
