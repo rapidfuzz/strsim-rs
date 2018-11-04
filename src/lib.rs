@@ -364,7 +364,7 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
         distances[1][j + 1] = j;
     }
 
-    let mut chars: HashMap<char, usize> = HashMap::new();
+    let mut chars: HashMap<char, usize> = HashMap::with_capacity(a_numchars);
 
     for i in 1..=a_numchars {
         let mut db = 0;
