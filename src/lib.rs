@@ -98,14 +98,7 @@ pub fn jaro(a: &str, b: &str) -> f64 {
     let mut b_match_index = 0;
 
     for (i, a_char) in a.chars().enumerate() {
-        let min_bound =
-            // prevent integer wrapping
-            if i > search_range {
-                max(0, i - search_range)
-            } else {
-                0
-            };
-
+        let min_bound = i.saturating_sub(search_range);
         let max_bound = min(b_numchars - 1, i + search_range);
 
         if min_bound > max_bound {
