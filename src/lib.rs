@@ -105,10 +105,9 @@ pub fn jaro(a: &str, b: &str) -> f64 {
             continue;
         }
 
-        for (j, b_char) in b.chars().enumerate() {
-            if min_bound <= j && j <= max_bound && a_char == b_char &&
-               !b_consumed[j]
-            {
+        let take = max_bound - min_bound + 1;
+        for (j, b_char) in b.chars().enumerate().skip(min_bound).take(take) {
+            if a_char == b_char && !b_consumed[j] {
                 b_consumed[j] = true;
                 matches += 1;
 
