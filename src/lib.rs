@@ -314,8 +314,8 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
             prev_b_char = b_char;
         }
 
-        prev_two_distances.clone_from(&prev_distances);
-        prev_distances.clone_from(&curr_distances);
+        prev_two_distances.copy_from_slice(&prev_distances);
+        prev_distances.copy_from_slice(&curr_distances);
         prev_a_char = a_char;
     }
 
