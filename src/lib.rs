@@ -16,6 +16,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::mem;
+use std::ops::Range;
 use helpers::split_on_common_prefix;
 
 #[derive(Debug, PartialEq)]
@@ -98,15 +99,17 @@ pub fn jaro(a: &str, b: &str) -> f64 {
     let mut b_match_index = 0;
 
     for (i, a_char) in a.chars().enumerate() {
-        let min_bound = i.saturating_sub(search_range);
-        let max_bound = min(b_numchars - 1, i + search_range);
+        let bound = Range {
+            start: i.saturating_sub(search_range),
+            end: min(b_numchars, i + search_range + 1),
+        };
 
-        if min_bound > max_bound {
+        if bound.start >= bound.end {
             continue;
         }
 
-        let take = max_bound - min_bound + 1;
-        for (j, b_char) in b.chars().enumerate().skip(min_bound).take(take) {
+        let take = bound.end - bound.start;
+        for (j, b_char) in b.chars().enumerate().skip(bound.start).take(take) {
             if a_char == b_char && !b_consumed[j] {
                 b_consumed[j] = true;
                 matches += 1;
