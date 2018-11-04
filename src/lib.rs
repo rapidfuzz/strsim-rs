@@ -375,7 +375,7 @@ pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
 
         for j in 1..=b_numchars {
             let k = match chars.get(&b_chars[j - 1]) {
-                Some(value) => value.clone(),
+                Some(value) => *value,
                 None => 0
             };
 
