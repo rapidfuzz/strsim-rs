@@ -15,6 +15,7 @@ use std::cmp::{max, min};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
+use std::mem;
 use helpers::split_on_common_prefix;
 
 #[derive(Debug, PartialEq)]
@@ -314,7 +315,7 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
             prev_b_char = b_char;
         }
 
-        prev_two_distances.copy_from_slice(&prev_distances);
+        mem::swap(&mut prev_two_distances, &mut prev_distances);
         prev_distances.copy_from_slice(&curr_distances);
         prev_a_char = a_char;
     }
