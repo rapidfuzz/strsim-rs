@@ -250,7 +250,7 @@ fn levenshtein_inner(a: &str, b: &str, a_numchars: Option<usize>,
     result
 }
 
-/// Calculate a “[Optimal string alignment](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Optimal_string_alignment_distance)”
+/// Calculate an “[Optimal string alignment](https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Optimal_string_alignment_distance)”
 /// metric.
 ///
 /// Like “Levenshtein” but allows for adjacent transpositions. Each substring
