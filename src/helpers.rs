@@ -8,6 +8,7 @@
 /// Checks both strings for a common prefix, splitting them after it, returning
 /// a tuple of the prefix along with the two suffixes
 /// `(prefix, a-suffix, b-suffix)`.
+#[inline(always)]
 pub(crate) fn split_on_common_prefix<'a, 'b>(a: &'a str, b: &'b str)
     -> (&'a str, &'a str, &'b str)
 {
@@ -19,6 +20,7 @@ pub(crate) fn split_on_common_prefix<'a, 'b>(a: &'a str, b: &'b str)
 
 /// Finds the byte offset of the next char following a prefix common to both
 /// strings.
+#[inline]
 pub(crate) fn get_diverge_indice(a: &str, b: &str) -> usize {
     a.char_indices()
      .zip(b.char_indices())
