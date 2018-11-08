@@ -78,7 +78,7 @@ pub fn hamming(a: &str, b: &str) -> HammingResult {
 ///         0.001);
 /// ```
 pub fn jaro(a: &str, b: &str) -> f64 {
-    jaro_inner(a, b, 0)
+    jaro_inner(a, b, None)
 }
 
 /// Calculate a “[Jaro Winkler](http://en.wikipedia.org/wiki/Jaro%E2%80%93Winkler_distance)”
@@ -99,16 +99,10 @@ pub fn jaro(a: &str, b: &str) -> f64 {
 ///         0.001);
 /// ```
 pub fn jaro_winkler(a: &str, b: &str) -> f64 {
-    if a.is_empty() ^ b.is_empty() { return 0.0; }
-
     // Note, we don’t limit the length of the common prefix in our implementation!
 
-    let (prefix, a_suffix, b_suffix, prefix_char_count) = split_on_common_prefix(a, b);
-    if prefix.len() == a.len() {
-        return 1.0;
-    }
-
-    let jaro_distance = jaro_inner(a_suffix, b_suffix, prefix_char_count);
+    let mut prefix_char_count = 0;
+    let jaro_distance = jaro_inner(a, b, Some(&mut prefix_char_count));
 
     let jaro_winkler_distance =
         jaro_distance + (0.1 * prefix_char_count as f64 * (1.0 - jaro_distance));
@@ -124,15 +118,25 @@ pub fn jaro_winkler(a: &str, b: &str) -> f64 {
 /// to provide an additional parameter used to make the Jaro-Winkler
 /// implementation more efficient.
 ///
-/// The `prefix_cc` param is the char count of a prefix common to both strings
-/// which has been removed from them. It is needed for correct calculation of
-/// the metric.
-fn jaro_inner(a: &str, b: &str, prefix_cc: usize) -> f64 {
-    if (a.is_empty() ^ b.is_empty()) && prefix_cc == 0 { return 0.0; }
-    if a == b { return 1.0; }
+/// The optional `prefix_cc` param for returning the `char` count of a prefix
+/// common to both strings, used for the Jaro-Winkler implementation.
+fn jaro_inner(a: &str, b: &str, ret_prefix_cc: Option<&mut usize>) -> f64 {
+    if a.is_empty() ^ b.is_empty() { return 0.0; }
 
-    let a_numchars = a.chars().count() + prefix_cc;
-    let b_numchars = b.chars().count() + prefix_cc;
+    let (_, a_suffix, b_suffix, prefix_char_count) =
+        split_on_common_prefix(a, b);
+
+    if a_suffix.is_empty() && b_suffix.is_empty() {
+        return 1.0;
+    }
+
+    // Jaro-Winkler wants this
+    if let Some(ret_prefix_cc) = ret_prefix_cc {
+        *ret_prefix_cc = prefix_char_count;
+    }
+
+    let a_numchars = a_suffix.chars().count() + prefix_char_count;
+    let b_numchars = b_suffix.chars().count() + prefix_char_count;
 
     // The check for lengths of one here is to prevent integer overflow when
     // calculating the search range.
@@ -144,11 +148,11 @@ fn jaro_inner(a: &str, b: &str, prefix_cc: usize) -> f64 {
 
     let mut b_consumed = vec![false; b_numchars];
 
-    let mut matches = prefix_cc;
+    let mut matches = prefix_char_count;
     let mut transpositions = 0;
     let mut b_match_index = 0;
 
-    for (i, a_char) in a.chars().enumerate() {
+    for (i, a_char) in a_suffix.chars().enumerate() {
         let bound = Range {
             start: i.saturating_sub(search_range),
             end: min(b_numchars, i + search_range + 1),
@@ -159,7 +163,7 @@ fn jaro_inner(a: &str, b: &str, prefix_cc: usize) -> f64 {
         }
 
         let take = bound.end - bound.start;
-        for (j, b_char) in b.chars().enumerate().skip(bound.start).take(take) {
+        for (j, b_char) in b_suffix.chars().enumerate().skip(bound.start).take(take) {
             if a_char == b_char && !b_consumed[j] {
                 b_consumed[j] = true;
                 matches += 1;
