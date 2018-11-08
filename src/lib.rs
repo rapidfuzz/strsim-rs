@@ -77,6 +77,7 @@ pub fn hamming(a: &str, b: &str) -> HammingResult {
 /// assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() <
 ///         0.001);
 /// ```
+#[inline(always)]
 pub fn jaro(a: &str, b: &str) -> f64 {
     jaro_inner(a, b, None)
 }
@@ -202,6 +203,7 @@ fn jaro_inner(a: &str, b: &str, ret_prefix_cc: Option<&mut usize>) -> f64 {
 ///
 /// assert_eq!(3, levenshtein("kitten", "sitting"));
 /// ```
+#[inline(always)]
 pub fn levenshtein(a: &str, b: &str) -> usize {
     levenshtein_inner(a, b, None, None)
 }
@@ -341,6 +343,7 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
 ///
 /// assert_eq!(2, damerau_levenshtein("ab", "bca"));
 /// ```
+#[inline(always)]
 pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
     damerau_levenshtein_inner(a, b, None, None)
 }
