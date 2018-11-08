@@ -44,6 +44,11 @@ fn diff_short() {
 }
 
 #[test]
+fn same_one_character() {
+    assert_eq!(1.0, jaro("a", "a"));
+}
+
+#[test]
 fn diff_one_character() {
     assert_eq!(0.0, jaro("a", "b"));
 }
