@@ -103,12 +103,10 @@ pub fn jaro_winkler(a: &str, b: &str) -> f64 {
 
     // Note, we don’t limit the length of the common prefix in our implementation!
 
-    let (prefix, a_suffix, b_suffix, _) = split_on_common_prefix(a, b);
+    let (prefix, a_suffix, b_suffix, prefix_char_count) = split_on_common_prefix(a, b);
     if prefix.len() == a.len() {
         return 1.0;
     }
-
-    let prefix_char_count = prefix.chars().count();
 
     let jaro_distance = jaro_inner(a_suffix, b_suffix, prefix_char_count);
 
