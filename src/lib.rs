@@ -103,7 +103,7 @@ pub fn jaro_winkler(a: &str, b: &str) -> f64 {
 
     // Note, we don’t limit the length of the common prefix in our implementation!
 
-    let (prefix, a_suffix, b_suffix) = split_on_common_prefix(a, b);
+    let (prefix, a_suffix, b_suffix, _) = split_on_common_prefix(a, b);
     if prefix.len() == a.len() {
         return 1.0;
     }
@@ -233,7 +233,7 @@ pub fn normalized_levenshtein(a: &str, b: &str) -> f64 {
 fn levenshtein_inner(a: &str, b: &str, a_numchars: Option<usize>,
     b_numchars: Option<usize>) -> usize
 {
-    let (_, a, b) = split_on_common_prefix(a, b);
+    let (_, a, b, _) = split_on_common_prefix(a, b);
 
     let b_numchars = {
         match (a.is_empty(), b.is_empty()) {
@@ -281,7 +281,7 @@ fn levenshtein_inner(a: &str, b: &str, a_numchars: Option<usize>,
 /// assert_eq!(3, osa_distance("ab", "bca"));
 /// ```
 pub fn osa_distance(a: &str, b: &str) -> usize {
-    let (_, a, b) = split_on_common_prefix(a, b);
+    let (_, a, b, _) = split_on_common_prefix(a, b);
 
     let b_numchars = {
         match (a.is_empty(), b.is_empty()) {
@@ -372,7 +372,7 @@ pub fn normalized_damerau_levenshtein(a: &str, b: &str) -> f64 {
 fn damerau_levenshtein_inner(a: &str, b: &str, a_numchars: Option<usize>,
     b_numchars: Option<usize>) -> usize
 {
-    let (_, a, b) = split_on_common_prefix(a, b);
+    let (_, a, b, _) = split_on_common_prefix(a, b);
 
     let (a_chars, b_chars, a_numchars, b_numchars) = {
         match (a.is_empty(), b.is_empty()) {
