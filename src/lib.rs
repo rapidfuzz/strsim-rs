@@ -86,7 +86,7 @@ pub fn jaro_generic<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Ite
     let mut transpositions = 0.0;
     let mut b_match_index = 0;
 
-    for (i, a_char) in a.into_iter().enumerate() {
+    for (i, a_elem) in a.into_iter().enumerate() {
         let min_bound =
             // prevent integer wrapping
             if i > search_range {
@@ -101,8 +101,8 @@ pub fn jaro_generic<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Ite
             continue;
         }
 
-        for (j, b_char) in b.into_iter().enumerate() {
-            if min_bound <= j && j <= max_bound && a_char == b_char &&
+        for (j, b_elem) in b.into_iter().enumerate() {
+            if min_bound <= j && j <= max_bound && a_elem == b_elem &&
                !b_consumed[j] {
                 b_consumed[j] = true;
                 matches += 1.0;
@@ -160,7 +160,7 @@ pub fn jaro_winkler_generic<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b:
     // Don't limit the length of the common prefix
     let prefix_length = a.into_iter()
         .zip(b.into_iter())
-        .take_while(|&(ref a_char, ref b_char)| a_char == b_char)
+        .take_while(|&(ref a_elem, ref b_elem)| a_elem == b_elem)
                          .count();
 
     let jaro_winkler_distance =
@@ -209,12 +209,12 @@ pub fn levenshtein_generic<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: 
     let mut distance_a;
     let mut distance_b;
 
-    for (i, a_char) in a.into_iter().enumerate() {
+    for (i, a_elem) in a.into_iter().enumerate() {
         result = i;
         distance_b = i;
 
-        for (j, b_char) in b.into_iter().enumerate() {
-            let cost = if a_char == b_char { 0 } else { 1 };
+        for (j, b_elem) in b.into_iter().enumerate() {
+            let cost = if a_elem == b_elem { 0 } else { 1 };
             distance_a = distance_b + cost;
             distance_b = cache[j];
             result = min(result + 1, min(distance_a, distance_b + 1));
@@ -318,10 +318,10 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
 ///
 /// assert_eq!(2, damerau_levenshtein_generic(&[1,2], &[2,3,1]));
 /// ```
-pub fn damerau_levenshtein_generic<Elem>(a_chars: &[Elem], b_chars: &[Elem]) -> usize
+pub fn damerau_levenshtein_generic<Elem>(a_elems: &[Elem], b_elems: &[Elem]) -> usize
     where Elem: Eq + Hash + Clone {
-    let a_len = a_chars.len();
-    let b_len = b_chars.len();
+    let a_len = a_elems.len();
+    let b_len = b_elems.len();
 
     if a_len == 0 { return b_len; }
     if b_len == 0 { return a_len; }
@@ -340,13 +340,13 @@ pub fn damerau_levenshtein_generic<Elem>(a_chars: &[Elem], b_chars: &[Elem]) -> 
         distances[1][j + 1] = j;
     }
 
-    let mut chars: HashMap<Elem, usize> = HashMap::new();
+    let mut elems: HashMap<Elem, usize> = HashMap::new();
 
     for i in 1..(a_len + 1) {
         let mut db = 0;
 
         for j in 1..(b_len + 1) {
-            let k = match chars.get(&b_chars[j - 1]) {
+            let k = match elems.get(&b_elems[j - 1]) {
                 Some(value) => value.clone(),
                 None => 0
             };
@@ -354,7 +354,7 @@ pub fn damerau_levenshtein_generic<Elem>(a_chars: &[Elem], b_chars: &[Elem]) -> 
             let l = db;
 
             let mut cost = 1;
-            if a_chars[i - 1] == b_chars[j - 1] {
+            if a_elems[i - 1] == b_elems[j - 1] {
                 cost = 0;
                 db = j;
             }
@@ -371,7 +371,7 @@ pub fn damerau_levenshtein_generic<Elem>(a_chars: &[Elem], b_chars: &[Elem]) -> 
                                           transposition_cost)));
         }
 
-        chars.insert(a_chars[i - 1].clone(), i);
+        elems.insert(a_elems[i - 1].clone(), i);
     }
 
     distances[a_len + 1][b_len + 1]
