@@ -49,7 +49,7 @@ mod benches {
     #[bench]
     fn bench_levenshtein_on_u8(bencher: &mut Bencher) {
         bencher.iter(|| {
-            strsim::levenshtein_generic(&vec![0u8; 30], &vec![7u8; 31]);
+            strsim::generic_levenshtein(&vec![0u8; 30], &vec![7u8; 31]);
         })
     }
 

@@ -29,7 +29,7 @@ pub type HammingResult = Result<usize, StrSimError>;
 
 /// Calculates the number of positions in the two sequences where the elements
 /// differ. Returns an error if the sequences have different lengths.
-pub fn hamming_generic<Iter1, Iter2, Elem1, Elem2>(a: Iter1, b: Iter2) -> HammingResult
+pub fn generic_hamming<Iter1, Iter2, Elem1, Elem2>(a: Iter1, b: Iter2) -> HammingResult
     where Iter1: IntoIterator<Item=Elem1>,
           Iter2: IntoIterator<Item=Elem2>,
           Elem1: PartialEq<Elem2> {
@@ -55,12 +55,12 @@ pub fn hamming_generic<Iter1, Iter2, Elem1, Elem2>(a: Iter1, b: Iter2) -> Hammin
 /// assert_eq!(Err(DifferentLengthArgs), hamming("hamming", "ham"));
 /// ```
 pub fn hamming(a: &str, b: &str) -> HammingResult {
-    hamming_generic(a.chars(), b.chars())
+    generic_hamming(a.chars(), b.chars())
 }
 
 /// Calculates the Jaro similarity between two sequences. The returned value
 /// is between 0.0 and 1.0 (higher value means more similar).
-pub fn jaro_generic<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Iter2) -> f64
+pub fn generic_jaro<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Iter2) -> f64
     where &'a Iter1: IntoIterator<Item=Elem1>,
           &'b Iter2: IntoIterator<Item=Elem2>,
           Elem1: PartialEq<Elem2> {
@@ -147,15 +147,15 @@ impl<'a, 'b> IntoIterator for &'a StringWrapper<'b> {
 ///         0.001);
 /// ```
 pub fn jaro(a: &str, b: &str) -> f64 {
-    jaro_generic(&StringWrapper(a), &StringWrapper(b))
+    generic_jaro(&StringWrapper(a), &StringWrapper(b))
 }
 
 /// Like Jaro but gives a boost to sequences that have a common prefix.
-pub fn jaro_winkler_generic<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Iter2) -> f64
+pub fn generic_jaro_winkler<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Iter2) -> f64
     where &'a Iter1: IntoIterator<Item=Elem1>,
           &'b Iter2: IntoIterator<Item=Elem2>,
           Elem1: PartialEq<Elem2> {
-    let jaro_distance = jaro_generic(a, b);
+    let jaro_distance = generic_jaro(a, b);
 
     // Don't limit the length of the common prefix
     let prefix_length = a.into_iter()
@@ -182,18 +182,18 @@ pub fn jaro_winkler_generic<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b:
 ///         0.001);
 /// ```
 pub fn jaro_winkler(a: &str, b: &str) -> f64 {
-    jaro_winkler_generic(&StringWrapper(a), &StringWrapper(b))
+    generic_jaro_winkler(&StringWrapper(a), &StringWrapper(b))
 }
 
 /// Calculates the minimum number of insertions, deletions, and substitutions
 /// required to change one sequence into the other.
 ///
 /// ```
-/// use strsim::levenshtein_generic;
+/// use strsim::generic_levenshtein;
 ///
-/// assert_eq!(3, levenshtein_generic(&[1,2,3], &[1,2,3,4,5,6]));
+/// assert_eq!(3, generic_levenshtein(&[1,2,3], &[1,2,3,4,5,6]));
 /// ```
-pub fn levenshtein_generic<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Iter2) -> usize
+pub fn generic_levenshtein<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Iter2) -> usize
     where &'a Iter1: IntoIterator<Item=Elem1>,
           &'b Iter2: IntoIterator<Item=Elem2>,
           Elem1: PartialEq<Elem2> {
@@ -234,7 +234,7 @@ pub fn levenshtein_generic<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: 
 /// assert_eq!(3, levenshtein("kitten", "sitting"));
 /// ```
 pub fn levenshtein(a: &str, b: &str) -> usize {
-    levenshtein_generic(&StringWrapper(a), &StringWrapper(b))
+    generic_levenshtein(&StringWrapper(a), &StringWrapper(b))
 }
 
 /// Calculates a normalized score of the Levenshtein algorithm between 0.0 and
@@ -314,11 +314,11 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
 /// number of times, and the triangle inequality holds.
 ///
 /// ```
-/// use strsim::damerau_levenshtein_generic;
+/// use strsim::generic_damerau_levenshtein;
 ///
-/// assert_eq!(2, damerau_levenshtein_generic(&[1,2], &[2,3,1]));
+/// assert_eq!(2, generic_damerau_levenshtein(&[1,2], &[2,3,1]));
 /// ```
-pub fn damerau_levenshtein_generic<Elem>(a_elems: &[Elem], b_elems: &[Elem]) -> usize
+pub fn generic_damerau_levenshtein<Elem>(a_elems: &[Elem], b_elems: &[Elem]) -> usize
     where Elem: Eq + Hash + Clone {
     let a_len = a_elems.len();
     let b_len = b_elems.len();
@@ -387,7 +387,7 @@ pub fn damerau_levenshtein_generic<Elem>(a_elems: &[Elem], b_elems: &[Elem]) -> 
 /// ```
 pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
     let (x, y): (Vec<_>, Vec<_>) = (a.chars().collect(), b.chars().collect());
-    damerau_levenshtein_generic(x.as_slice(), y.as_slice())
+    generic_damerau_levenshtein(x.as_slice(), y.as_slice())
 }
 
 /// Calculates a normalized score of the Damerau–Levenshtein algorithm between
@@ -429,7 +429,7 @@ mod tests {
 
     #[test]
     fn hamming_numbers() {
-        assert_eq!(Ok(1), hamming_generic(&[1, 2, 4], &[1, 2, 3]));
+        assert_eq!(Ok(1), generic_hamming(&[1, 2, 4], &[1, 2, 3]));
     }
 
     #[test]
@@ -446,7 +446,7 @@ mod tests {
     fn hamming_unequal_length() {
         assert_eq!(
             Err(StrSimError::DifferentLengthArgs),
-            hamming_generic("ham".chars(), "hamming".chars())
+            generic_hamming("ham".chars(), "hamming".chars())
         );
     }
 
@@ -492,8 +492,8 @@ mod tests {
     }
 
     #[test]
-    fn jaro_generic_diff() {
-        assert_eq!(0.0, jaro_generic(&[1, 2], &[3, 4]));
+    fn generic_jaro_diff() {
+        assert_eq!(0.0, generic_jaro(&[1, 2], &[3, 4]));
     }
 
     #[test]
