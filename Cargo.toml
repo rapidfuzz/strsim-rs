@@ -13,6 +13,11 @@ homepage = "https://github.com/dguo/strsim-rs"
 repository = "https://github.com/dguo/strsim-rs"
 documentation = "https://docs.rs/strsim/"
 exclude = ["/.travis.yml", "/appveyor.yml", "/dev"]
+edition="2018"
+
+[dependencies]
+hashbrown = "0.1.8"
+ndarray = "0.12.1"
 
 [badges]
 travis-ci = { repository = "dguo/strsim-rs" }
