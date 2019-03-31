@@ -1,5 +1,8 @@
 //! This library implements string similarity metrics.
 
+extern crate ndarray;
+extern crate hashbrown;
+
 use std::char;
 use std::cmp::{max, min};
 use std::error::Error;
