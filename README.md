@@ -10,13 +10,15 @@
 The normalized versions return values between `0.0` and `1.0`, where `1.0` means
 an exact match.
 
+There are also generic versions of the functions for non-string inputs.
+
 ## Installation
 
 `strsim` is available on [crates.io](https://crates.io/crates/strsim). Add it to
 your `Cargo.toml`:
 ```toml
 [dependencies]
-strsim = "0.8.0"
+strsim = "0.9.0"
 ```
 
 ## Usage
@@ -55,6 +57,18 @@ fn main() {
 
     assert!((jaro_winkler("cheeseburger", "cheese fries") - 0.911).abs() <
             0.001);
+}
+```
+
+Using the generic versions of the functions:
+
+```rust
+extern crate strsim;
+
+use strsim::generic_levenshtein;
+
+fn main() {
+    assert_eq!(2, generic_levenshtein(&[1, 2, 3], &[0, 2, 5]));
 }
 ```
 

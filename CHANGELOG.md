@@ -3,6 +3,12 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org).
 
 ## [Unreleased]
 
+## [0.9.0] - (2019-04-06)
+
+### Added
+
+- Generic distance functions (thanks [@lovasoa](https://github.com/lovasoa))
+
 ## [0.8.0] - (2018-08-19)
 ### Added
 - Normalized versions of Levenshtein and Damerau-Levenshtein (thanks [@gentoid](https://github.com/gentoid))
@@ -100,7 +106,8 @@ vector of results (thanks @ovarene)
 ### Added
 - Implement Hamming, Jaro, Jaro-Winkler, and Levenshtein
 
-[Unreleased]: https://github.com/dguo/strsim-rs/compare/0.8.0...HEAD
+[Unreleased]: https://github.com/dguo/strsim-rs/compare/0.9.0...HEAD
+[0.9.0]: https://github.com/dguo/strsim-rs/compare/0.8.0...0.9.0
 [0.8.0]: https://github.com/dguo/strsim-rs/compare/0.7.0...0.8.0
 [0.7.0]: https://github.com/dguo/strsim-rs/compare/0.6.0...0.7.0
 [0.6.0]: https://github.com/dguo/strsim-rs/compare/0.5.2...0.6.0
