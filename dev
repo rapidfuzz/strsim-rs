@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser(prog='./dev')
 subparsers = parser.add_subparsers(metavar='<command>', title='commands')
 command = [
     'docker', 'run', '-it', '--rm', '-v', os.getcwd() + ':/src:cached',
-    '-w=/src', 'rust:1.30.0'
+    '-w=/src', 'rust:1.31.0'
 ]
 
 def cargo(args, remaining):

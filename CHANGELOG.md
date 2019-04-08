@@ -3,6 +3,12 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org).
 
 ## [Unreleased]
 
+## [0.9.1] - (2019-04-08)
+
+### Changed
+
+- Faster Damerau-Levenshtein implementation (thanks [@lovasoa](https://github.com/lovasoa))
+
 ## [0.9.0] - (2019-04-06)
 
 ### Added
@@ -106,7 +112,8 @@ vector of results (thanks @ovarene)
 ### Added
 - Implement Hamming, Jaro, Jaro-Winkler, and Levenshtein
 
-[Unreleased]: https://github.com/dguo/strsim-rs/compare/0.9.0...HEAD
+[Unreleased]: https://github.com/dguo/strsim-rs/compare/0.9.1...HEAD
+[0.9.1]: https://github.com/dguo/strsim-rs/compare/0.9.0...0.9.1
 [0.9.0]: https://github.com/dguo/strsim-rs/compare/0.8.0...0.9.0
 [0.8.0]: https://github.com/dguo/strsim-rs/compare/0.7.0...0.8.0
 [0.7.0]: https://github.com/dguo/strsim-rs/compare/0.6.0...0.7.0
