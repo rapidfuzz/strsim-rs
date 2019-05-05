@@ -1,5 +1,7 @@
 //! This library implements string similarity metrics.
 
+extern crate ndarray;
+
 use std::char;
 use std::cmp::{max, min};
 use std::collections::HashMap;
@@ -7,6 +9,8 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::hash::Hash;
 use std::str::Chars;
+
+use ndarray::Array2;
 
 #[derive(Debug, PartialEq)]
 pub enum StrSimError {
@@ -326,18 +330,18 @@ pub fn generic_damerau_levenshtein<Elem>(a_elems: &[Elem], b_elems: &[Elem]) -> 
     if a_len == 0 { return b_len; }
     if b_len == 0 { return a_len; }
 
-    let mut distances = vec![vec![0; b_len + 2]; a_len + 2];
+    let mut distances = Array2::<usize>::zeros((a_len + 2, b_len + 2));
     let max_distance = a_len + b_len;
-    distances[0][0] = max_distance;
+    distances[[0, 0]] = max_distance;
 
     for i in 0..(a_len + 1) {
-        distances[i + 1][0] = max_distance;
-        distances[i + 1][1] = i;
+        distances[[i + 1, 0]] = max_distance;
+        distances[[i + 1, 1]] = i;
     }
 
     for j in 0..(b_len + 1) {
-        distances[0][j + 1] = max_distance;
-        distances[1][j + 1] = j;
+        distances[[0, j + 1]] = max_distance;
+        distances[[1, j + 1]] = j;
     }
 
     let mut elems: HashMap<Elem, usize> = HashMap::new();
@@ -347,25 +351,22 @@ pub fn generic_damerau_levenshtein<Elem>(a_elems: &[Elem], b_elems: &[Elem]) -> 
 
         for j in 1..(b_len + 1) {
             let k = match elems.get(&b_elems[j - 1]) {
-                Some(value) => value.clone(),
+                Some(&value) => value,
                 None => 0
             };
 
-            let l = db;
+            let insertion_cost = distances[[i, j + 1]] + 1;
+            let deletion_cost = distances[[i + 1, j]] + 1;
+            let transposition_cost = distances[[k, db]] + (i - k - 1) + 1 +
+                                     (j - db - 1);
+            let mut substitution_cost = distances[[i, j]] + 1;
 
-            let mut cost = 1;
             if a_elems[i - 1] == b_elems[j - 1] {
-                cost = 0;
                 db = j;
+                substitution_cost -= 1;
             }
 
-            let substitution_cost = distances[i][j] + cost;
-            let insertion_cost = distances[i][j + 1] + 1;
-            let deletion_cost = distances[i + 1][j] + 1;
-            let transposition_cost = distances[k][l] + (i - k - 1) + 1 +
-                                     (j - l - 1);
-
-            distances[i + 1][j + 1] = min(substitution_cost,
+            distances[[i + 1, j + 1]] = min(substitution_cost,
                                       min(insertion_cost,
                                       min(deletion_cost,
                                           transposition_cost)));
@@ -374,7 +375,7 @@ pub fn generic_damerau_levenshtein<Elem>(a_elems: &[Elem], b_elems: &[Elem]) -> 
         elems.insert(a_elems[i - 1].clone(), i);
     }
 
-    distances[a_len + 1][b_len + 1]
+    distances[[a_len + 1, b_len + 1]]
 }
 
 /// Like optimal string alignment, but substrings can be edited an unlimited
