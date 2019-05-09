@@ -1,7 +1,5 @@
 //! This library implements string similarity metrics.
 
-extern crate ndarray;
-
 use std::char;
 use std::cmp::{max, min};
 use std::collections::HashMap;
@@ -9,8 +7,6 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::hash::Hash;
 use std::str::Chars;
-
-use ndarray::Array2;
 
 #[derive(Debug, PartialEq)]
 pub enum StrSimError {
@@ -310,6 +306,12 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
 
 }
 
+/* Returns the final index for a value in a single vector that represents a fixed
+   2d grid */
+fn flat_index(i: usize, j: usize, width: usize) -> usize {
+    j * width + i
+}
+
 /// Like optimal string alignment, but substrings can be edited an unlimited
 /// number of times, and the triangle inequality holds.
 ///
@@ -326,18 +328,19 @@ pub fn generic_damerau_levenshtein<Elem>(a_elems: &[Elem], b_elems: &[Elem]) -> 
     if a_len == 0 { return b_len; }
     if b_len == 0 { return a_len; }
 
-    let mut distances = Array2::<usize>::zeros((a_len + 2, b_len + 2));
+    let width = a_len + 2;
+    let mut distances = vec![0; (a_len + 2) * (b_len + 2)];
     let max_distance = a_len + b_len;
-    distances[[0, 0]] = max_distance;
+    distances[0] = max_distance;
 
     for i in 0..(a_len + 1) {
-        distances[[i + 1, 0]] = max_distance;
-        distances[[i + 1, 1]] = i;
+        distances[flat_index(i + 1, 0, width)] = max_distance;
+        distances[flat_index(i + 1, 1, width)] = i;
     }
 
     for j in 0..(b_len + 1) {
-        distances[[0, j + 1]] = max_distance;
-        distances[[1, j + 1]] = j;
+        distances[flat_index(0, j + 1, width)] = max_distance;
+        distances[flat_index(1, j + 1, width)] = j;
     }
 
     let mut elems: HashMap<Elem, usize> = HashMap::with_capacity(64);
@@ -351,28 +354,25 @@ pub fn generic_damerau_levenshtein<Elem>(a_elems: &[Elem], b_elems: &[Elem]) -> 
                 None => 0
             };
 
+            let insertion_cost = distances[flat_index(i, j + 1, width)] + 1;
+            let deletion_cost = distances[flat_index(i + 1, j, width)] + 1;
+            let transposition_cost = distances[flat_index(k, db, width)] +
+                (i - k - 1) + 1 + (j - db - 1);
 
-            let insertion_cost = distances[[i, j + 1]] + 1;
-            let deletion_cost = distances[[i + 1, j]] + 1;
-            let transposition_cost = distances[[k, db]] + (i - k - 1) + 1 +
-                (j - db - 1);
-
-            let mut substitution_cost = distances[[i, j]] + 1;
+            let mut substitution_cost = distances[flat_index(i, j, width)] + 1;
             if a_elems[i - 1] == b_elems[j - 1] {
                 db = j;
                 substitution_cost -= 1;
             }
 
-            distances[[i + 1, j + 1]] = min(substitution_cost,
-                                            min(insertion_cost,
-                                                min(deletion_cost,
-                                                    transposition_cost)));
+            distances[flat_index(i + 1, j + 1, width)] = min(substitution_cost,
+                min(insertion_cost, min(deletion_cost, transposition_cost)));
         }
 
         elems.insert(a_elems[i - 1].clone(), i);
     }
 
-    distances[[a_len + 1, b_len + 1]]
+    distances[flat_index(a_len + 1, b_len + 1, width)]
 }
 
 /// Like optimal string alignment, but substrings can be edited an unlimited

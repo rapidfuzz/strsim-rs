@@ -7,6 +7,8 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org).
 
 - Revert back to the standard library hashmap because it will use hashbrown very
   soon
+- Remove ndarray in favor of using a single vector to represent the 2d grid in
+  Damerau-Levenshtein
 
 ## [0.9.1] - (2019-04-08)
 

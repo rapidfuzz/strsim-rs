@@ -14,8 +14,5 @@ repository = "https://github.com/dguo/strsim-rs"
 documentation = "https://docs.rs/strsim/"
 exclude = ["/.travis.yml", "/dev"]
 
-[dependencies]
-ndarray = "0.12.1"
-
 [badges]
 travis-ci = { repository = "dguo/strsim-rs" }
