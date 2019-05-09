@@ -1,16 +1,15 @@
 //! This library implements string similarity metrics.
 
-extern crate hashbrown;
 extern crate ndarray;
 
 use std::char;
 use std::cmp::{max, min};
+use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::hash::Hash;
 use std::str::Chars;
 
-use hashbrown::HashMap;
 use ndarray::Array2;
 
 #[derive(Debug, PartialEq)]

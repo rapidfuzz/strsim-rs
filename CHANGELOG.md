@@ -3,6 +3,11 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org).
 
 ## [Unreleased]
 
+### Changed
+
+- Revert back to the standard library hashmap because it will use hashbrown very
+  soon
+
 ## [0.9.1] - (2019-04-08)
 
 ### Changed
