@@ -1,5 +1,16 @@
 //! This library implements string similarity metrics.
 
+#![cfg_attr(feature = "readme", feature(cfg_doctest))]
+
+#[cfg(feature = "readme")]
+#[cfg(doctest)]
+#[macro_use]
+extern crate doc_comment;
+
+#[cfg(feature = "readme")]
+#[cfg(doctest)]
+doctest!("../README.md");
+
 use std::char;
 use std::cmp::{max, min};
 use std::collections::HashMap;

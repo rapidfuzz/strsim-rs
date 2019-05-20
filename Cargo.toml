@@ -16,3 +16,9 @@ exclude = ["/.travis.yml", "/dev"]
 
 [badges]
 travis-ci = { repository = "dguo/strsim-rs" }
+
+[dev-dependencies]
+doc-comment = "0.3"
+
+[features]
+readme = [] # to be used to test readme examples as long as cfg(doctest) is unstable
