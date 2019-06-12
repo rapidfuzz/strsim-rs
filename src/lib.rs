@@ -143,8 +143,7 @@ impl<'a, 'b> IntoIterator for &'a StringWrapper<'b> {
 /// ```
 /// use strsim::jaro;
 ///
-/// assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() <
-///         0.001);
+/// assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() < 0.001);
 /// ```
 pub fn jaro(a: &str, b: &str) -> f64 {
     generic_jaro(&StringWrapper(a), &StringWrapper(b))
@@ -201,7 +200,7 @@ pub fn generic_levenshtein<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: 
 
     if a.into_iter().next().is_none() { return b_len; }
 
-    let mut cache: Vec<usize> = (1..b_len+1).collect();
+    let mut cache: Vec<usize> = (1..=b_len).collect();
 
     let mut result = 0;
 
@@ -274,7 +273,7 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
     let mut prev_a_char = char::MAX;
     let mut prev_b_char = char::MAX;
 
-    for i in 0..(b_len + 1) {
+    for i in 0..=b_len {
         prev_two_distances.push(i);
         prev_distances.push(i);
         curr_distances.push(0);
@@ -333,22 +332,22 @@ pub fn generic_damerau_levenshtein<Elem>(a_elems: &[Elem], b_elems: &[Elem]) -> 
     let max_distance = a_len + b_len;
     distances[0] = max_distance;
 
-    for i in 0..(a_len + 1) {
+    for i in 0..=a_len {
         distances[flat_index(i + 1, 0, width)] = max_distance;
         distances[flat_index(i + 1, 1, width)] = i;
     }
 
-    for j in 0..(b_len + 1) {
+    for j in 0..=b_len {
         distances[flat_index(0, j + 1, width)] = max_distance;
         distances[flat_index(1, j + 1, width)] = j;
     }
 
     let mut elems: HashMap<Elem, usize> = HashMap::with_capacity(64);
 
-    for i in 1..(a_len + 1) {
+    for i in 1..=a_len {
         let mut db = 0;
 
-        for j in 1..(b_len + 1) {
+        for j in 1..=b_len {
             let k = match elems.get(&b_elems[j - 1]) {
                 Some(&value) => value,
                 None => 0
