@@ -1,4 +1,8 @@
-# strsim-rs [![Crates.io](https://img.shields.io/crates/v/strsim.svg)](https://crates.io/crates/strsim) [![Crates.io](https://img.shields.io/crates/l/strsim.svg?maxAge=2592000)](https://github.com/dguo/strsim-rs/blob/master/LICENSE) [![build status](https://travis-ci.org/dguo/strsim-rs.svg?branch=master)](https://travis-ci.org/dguo/strsim-rs)
+# strsim-rs
+[![Build Status](https://travis-ci.org/dguo/strsim-rs.svg?branch=master)](https://travis-ci.org/dguo/strsim-rs)
+[![Crate](https://img.shields.io/crates/v/strsim.svg)](https://crates.io/crates/strsim)
+[![Docs](https://docs.rs/strsim/badge.svg)](https://docs.rs/strsim)
+[![Crate](https://img.shields.io/crates/l/strsim.svg?maxAge=2592000)](https://github.com/dguo/strsim-rs/blob/master/LICENSE)
 
 [Rust](https://www.rust-lang.org) implementations of [string similarity metrics]:
   - [Hamming]
@@ -12,19 +16,13 @@ an exact match.
 
 There are also generic versions of the functions for non-string inputs.
 
-## Installation
-
-`strsim` is available on [crates.io](https://crates.io/crates/strsim). Add it to
-your `Cargo.toml`:
-```toml
-[dependencies]
-strsim = "0.9.2"
-```
-
 ## Usage
 
-Go to [Docs.rs](https://docs.rs/strsim/) for the full documentation. You can
-also clone the repo, and run `$ cargo doc --open`.
+Add this to your `Cargo.toml`:
+```toml
+[dependencies]
+strsim = "0.9"
+```
 
 ### Examples
 
@@ -49,14 +47,11 @@ fn main() {
 
     assert_eq!(damerau_levenshtein("ac", "cba"), 2);
 
-    assert!((normalized_damerau_levenshtein("levenshtein", "löwenbräu") - 0.272).abs() <
-            0.001);
+    assert!((normalized_damerau_levenshtein("levenshtein", "löwenbräu") - 0.272).abs() < 0.001);
 
-    assert!((jaro("Friedrich Nietzsche", "Jean-Paul Sartre") - 0.392).abs() <
-            0.001);
+    assert!((jaro("Friedrich Nietzsche", "Jean-Paul Sartre") - 0.392).abs() < 0.001);
 
-    assert!((jaro_winkler("cheeseburger", "cheese fries") - 0.911).abs() <
-            0.001);
+    assert!((jaro_winkler("cheeseburger", "cheese fries") - 0.911).abs() < 0.001);
 }
 ```
 
