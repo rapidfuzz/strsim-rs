@@ -16,3 +16,6 @@ exclude = ["/.travis.yml", "/dev"]
 
 [badges]
 travis-ci = { repository = "dguo/strsim-rs" }
+
+[dev-dependencies]
+proptest = "0.9.4"
