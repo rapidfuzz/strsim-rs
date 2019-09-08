@@ -1,5 +1,7 @@
 //! This library implements string similarity metrics.
 
+#[forbid(unsafe_code)]
+
 use std::char;
 use std::cmp::{max, min};
 use std::collections::HashMap;
