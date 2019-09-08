@@ -1,6 +1,6 @@
 //! This library implements string similarity metrics.
 
-#[forbid(unsafe_code)]
+#![forbid(unsafe_code)]
 
 use std::char;
 use std::cmp::{max, min};
