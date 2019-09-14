@@ -1,4 +1,4 @@
-# strsim-rs [![Crates.io](https://img.shields.io/crates/v/strsim.svg)](https://crates.io/crates/strsim) [![Crates.io](https://img.shields.io/crates/l/strsim.svg?maxAge=2592000)](https://github.com/dguo/strsim-rs/blob/master/LICENSE) [![build status](https://travis-ci.org/dguo/strsim-rs.svg?branch=master)](https://travis-ci.org/dguo/strsim-rs)
+# strsim-rs [![Crates.io](https://img.shields.io/crates/v/strsim.svg)](https://crates.io/crates/strsim) [![Crates.io](https://img.shields.io/crates/l/strsim.svg?maxAge=2592000)](https://github.com/dguo/strsim-rs/blob/master/LICENSE) [![build status](https://travis-ci.org/dguo/strsim-rs.svg?branch=master)](https://travis-ci.org/dguo/strsim-rs) [![unsafe forbidden](https://img.shields.io/badge/unsafe-forbidden-success.svg)](https://github.com/rust-secure-code/safety-dance/)
 
 [Rust](https://www.rust-lang.org) implementations of [string similarity metrics]:
   - [Hamming]
