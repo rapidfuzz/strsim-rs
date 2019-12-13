@@ -72,9 +72,11 @@ pub fn generic_jaro<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Ite
     // The check for lengths of one here is to prevent integer overflow when
     // calculating the search range.
     if a_len == 0 && b_len == 0 {
-        return 1.0
-    } else if a_len == 0 || b_len == 0 || (a_len == 1 && b_len == 1) {
+        return 1.0;
+    } else if a_len == 0 || b_len == 0 {
         return 0.0;
+    } else if a_len == 1 && b_len == 1 {
+        return if a.into_iter().eq(b.into_iter()) { 1.0} else { 0.0 };
     }
 
     let search_range = (max(a_len, b_len) / 2) - 1;
@@ -492,6 +494,11 @@ mod tests {
     }
 
     #[test]
+    fn jaro_same_one_character() {
+        assert_eq!(1.0, jaro("a", "a"));
+    }
+
+    #[test]
     fn generic_jaro_diff() {
         assert_eq!(0.0, generic_jaro(&[1, 2], &[3, 4]));
     }
@@ -559,6 +566,11 @@ mod tests {
     #[test]
     fn jaro_winkler_diff_one_character() {
         assert_eq!(0.0, jaro_winkler("a", "b"));
+    }
+
+    #[test]
+    fn jaro_winkler_same_one_character() {
+        assert_eq!(1.0, jaro_winkler("a", "a"));
     }
 
     #[test]
