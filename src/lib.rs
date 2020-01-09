@@ -411,9 +411,87 @@ pub fn normalized_damerau_levenshtein(a: &str, b: &str) -> f64 {
     1.0 - (damerau_levenshtein(a, b) as f64) / (a.chars().count().max(b.chars().count()) as f64)
 }
 
+/// Returns an Iterator of char tuples.
+fn bigrams(s: &str) -> impl Iterator<Item=(char, char)> + '_ {
+    s.chars().zip(s.chars().skip(1))
+}
+
+
+/// Calculates a Sørensen-Dice similarity distance using bigrams.
+/// See http://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient.
+///
+/// ```
+/// use strsim::sorensen_dice;
+///
+/// assert_eq!(1.0, sorensen_dice("", ""));
+/// assert_eq!(0.0, sorensen_dice("", "a"));
+/// assert_eq!(0.0, sorensen_dice("french", "quebec"));
+/// assert_eq!(1.0, sorensen_dice("ferris", "ferris"));
+/// assert_eq!(1.0, sorensen_dice("ferris", "ferris"));
+/// assert_eq!(0.8888888888888888, sorensen_dice("feris", "ferris"));
+/// ```
+pub fn sorensen_dice(a: &str, b: &str) -> f64 {
+    // implementation guided by
+    // https://github.com/aceakash/string-similarity/blob/f83ba3cd7bae874c20c429774e911ae8cff8bced/src/index.js#L6
+
+    let a: String = a.chars().filter(|&x| !char::is_whitespace(x)).collect();
+    let b: String = b.chars().filter(|&x| !char::is_whitespace(x)).collect();
+
+    if a.len() == 0 && b.len() == 0 {
+        return 1.0;
+    }
+
+    if a.len() == 0 || b.len() == 0 {
+        return 0.0;
+    }
+
+    if a == b {
+        return 1.0;
+    }
+
+    if a.len() == 1 && b.len() == 1 {
+        return 0.0;
+    }
+
+    if a.len() < 2 || b.len() < 2 {
+        return 0.0;
+    }
+
+    let mut a_bigrams: HashMap<(char, char), usize> = HashMap::new();
+
+    for bigram in bigrams(&a) {
+        *a_bigrams.entry(bigram).or_insert(0) += 1;
+    }
+
+    let mut intersection_size = 0;
+
+    for bigram in bigrams(&b) {
+        a_bigrams.entry(bigram).and_modify(|bi| {
+            if *bi > 0 {
+                *bi -= 1;
+                intersection_size += 1;
+            }
+        });
+    }
+
+    (2 * intersection_size) as f64 / (a.len() + b.len() - 2) as f64
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn bigrams_iterator() {
+        let mut bi = bigrams("abcde");
+
+        assert_eq!(Some(('a', 'b')), bi.next());
+        assert_eq!(Some(('b', 'c')), bi.next());
+        assert_eq!(Some(('c', 'd')), bi.next());
+        assert_eq!(Some(('d', 'e')), bi.next());
+        assert_eq!(None, bi.next());
+    }
 
     fn assert_hamming_dist(dist: usize, str1: &str, str2: &str) {
         assert_eq!(Ok(dist), hamming(str1, str2));
@@ -869,5 +947,59 @@ mod tests {
     #[test]
     fn normalized_damerau_levenshtein_identical_strings() {
         assert!((normalized_damerau_levenshtein("sunglasses", "sunglasses") - 1.0).abs() < 0.00001);
+    }
+
+    #[test]
+    fn sorensen_dice_all() {
+        // test cases taken from
+        // https://github.com/aceakash/string-similarity/blob/f83ba3cd7bae874c20c429774e911ae8cff8bced/src/spec/index.spec.js#L11
+
+        assert_eq!(1.0, sorensen_dice("a", "a"));
+        assert_eq!(0.0, sorensen_dice("a", "b"));
+        assert_eq!(1.0, sorensen_dice("", ""));
+        assert_eq!(0.0, sorensen_dice("a", ""));
+        assert_eq!(0.0, sorensen_dice("", "a"));
+        assert_eq!(1.0, sorensen_dice("apple event", "apple    event"));
+        assert_eq!(0.9090909090909091, sorensen_dice("iphone", "iphone x"));
+        assert_eq!(0.0, sorensen_dice("french", "quebec"));
+        assert_eq!(1.0, sorensen_dice("france", "france"));
+        assert_eq!(0.2, sorensen_dice("fRaNce", "france"));
+        assert_eq!(0.8, sorensen_dice("healed", "sealed"));
+        assert_eq!(
+            0.7878787878787878,
+            sorensen_dice("web applications", "applications of the web")
+        );
+        assert_eq!(
+            0.92,
+            sorensen_dice(
+                "this will have a typo somewhere",
+                "this will huve a typo somewhere"
+            )
+        );
+        assert_eq!(
+            0.6060606060606061,
+            sorensen_dice(
+                "Olive-green table for sale, in extremely good condition.",
+                "For sale: table in very good  condition, olive green in colour."
+            )
+        );
+        assert_eq!(
+            0.2558139534883721,
+            sorensen_dice(
+                "Olive-green table for sale, in extremely good condition.",
+                "For sale: green Subaru Impreza, 210,000 miles"
+            )
+        );
+        assert_eq!(
+            0.1411764705882353,
+            sorensen_dice(
+                "Olive-green table for sale, in extremely good condition.",
+                "Wanted: mountain bike with at least 21 gears."
+            )
+        );
+        assert_eq!(
+            0.7741935483870968,
+            sorensen_dice("this has one extra word", "this has one word")
+        );
     }
 }
