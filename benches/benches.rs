@@ -88,4 +88,13 @@ mod benches {
             strsim::normalized_damerau_levenshtein(&a, &b);
         })
     }
+
+    #[bench]
+    fn bench_sorensen_dice(bencher: &mut Bencher) {
+        let a = "Philosopher Friedrich Nietzsche";
+        let b = "Philosopher Jean-Paul Sartre";
+        bencher.iter(|| {
+            strsim::sorensen_dice(&a, &b);
+        })
+    }
 }

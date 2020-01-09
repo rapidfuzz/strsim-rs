@@ -11,6 +11,7 @@
   - [Optimal string alignment]
   - [Damerau-Levenshtein] - distance & normalized
   - [Jaro and Jaro-Winkler] - this implementation of Jaro-Winkler does not limit the common prefix length
+  - [Sørensen-Dice]
 
 The normalized versions return values between `0.0` and `1.0`, where `1.0` means
 an exact match.
@@ -38,7 +39,7 @@ extern crate strsim;
 
 use strsim::{hamming, levenshtein, normalized_levenshtein, osa_distance,
              damerau_levenshtein, normalized_damerau_levenshtein, jaro,
-             jaro_winkler};
+             jaro_winkler, sorensen_dice};
 
 fn main() {
     match hamming("hamming", "hammers") {
@@ -62,6 +63,9 @@ fn main() {
 
     assert!((jaro_winkler("cheeseburger", "cheese fries") - 0.911).abs() <
             0.001);
+
+    assert_eq!(sorensen_dice("web applications", "applications of the web"),
+        0.7878787878787878);
 }
 ```
 
@@ -94,4 +98,5 @@ Benchmarks require a Nightly toolchain. Run `$ cargo +nightly bench`.
 [Levenshtein]:http://en.wikipedia.org/wiki/Levenshtein_distance
 [Hamming]:http://en.wikipedia.org/wiki/Hamming_distance
 [Optimal string alignment]:https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance#Optimal_string_alignment_distance
+[Sørensen-Dice]:http://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient
 [Docker]:https://docs.docker.com/engine/installation/
