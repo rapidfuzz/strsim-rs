@@ -24,7 +24,7 @@ There are also generic versions of the functions for non-string inputs.
 your `Cargo.toml`:
 ```toml
 [dependencies]
-strsim = "0.9.3"
+strsim = "0.10.0"
 ```
 
 ## Usage

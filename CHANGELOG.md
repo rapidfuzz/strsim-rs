@@ -4,6 +4,12 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org).
 
 ## [Unreleased]
 
+## [0.10.0] - (2020-01-31)
+
+### Added
+
+- Sørensen-Dice implementation (thanks [@robjtede](https://github.com/robjtede))
+
 ## [0.9.3] - (2019-12-12)
 
 ### Fixed
@@ -169,7 +175,8 @@ vector of results (thanks @ovarene)
 
 - Implement Hamming, Jaro, Jaro-Winkler, and Levenshtein
 
-[Unreleased]: https://github.com/dguo/strsim-rs/compare/0.9.3...HEAD
+[Unreleased]: https://github.com/dguo/strsim-rs/compare/0.10.0...HEAD
+[0.10.0]: https://github.com/dguo/strsim-rs/compare/0.9.3...0.10.0
 [0.9.3]: https://github.com/dguo/strsim-rs/compare/0.9.2...0.9.3
 [0.9.2]: https://github.com/dguo/strsim-rs/compare/0.9.1...0.9.2
 [0.9.1]: https://github.com/dguo/strsim-rs/compare/0.9.0...0.9.1
