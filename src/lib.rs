@@ -437,20 +437,8 @@ pub fn sorensen_dice(a: &str, b: &str) -> f64 {
     let a: String = a.chars().filter(|&x| !char::is_whitespace(x)).collect();
     let b: String = b.chars().filter(|&x| !char::is_whitespace(x)).collect();
 
-    if a.len() == 0 && b.len() == 0 {
-        return 1.0;
-    }
-
-    if a.len() == 0 || b.len() == 0 {
-        return 0.0;
-    }
-
     if a == b {
         return 1.0;
-    }
-
-    if a.len() == 1 && b.len() == 1 {
-        return 0.0;
     }
 
     if a.len() < 2 || b.len() < 2 {
