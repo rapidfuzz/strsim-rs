@@ -62,12 +62,12 @@ pub fn hamming(a: &str, b: &str) -> HammingResult {
 
 /// Calculates the Jaro similarity between two sequences. The returned value
 /// is between 0.0 and 1.0 (higher value means more similar).
-pub fn generic_jaro<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Iter2) -> f64
-    where &'a Iter1: IntoIterator<Item=Elem1>,
-          &'b Iter2: IntoIterator<Item=Elem2>,
+pub fn generic_jaro<Iter1, Iter2, Elem1, Elem2>(a: Iter1, b: Iter2) -> f64
+    where Iter1: IntoIterator<Item=Elem1> + Clone,
+          Iter2: IntoIterator<Item=Elem2> + Clone,
           Elem1: PartialEq<Elem2> {
-    let a_len = a.into_iter().count();
-    let b_len = b.into_iter().count();
+    let a_len = a.clone().into_iter().count();
+    let b_len = b.clone().into_iter().count();
 
     // The check for lengths of one here is to prevent integer overflow when
     // calculating the search range.
@@ -105,7 +105,7 @@ pub fn generic_jaro<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Ite
             continue;
         }
 
-        for (j, b_elem) in b.into_iter().enumerate() {
+        for (j, b_elem) in b.clone().into_iter().enumerate() {
             if min_bound <= j && j <= max_bound && a_elem == b_elem &&
                 !b_consumed[j] {
                 b_consumed[j] = true;
@@ -155,11 +155,11 @@ pub fn jaro(a: &str, b: &str) -> f64 {
 }
 
 /// Like Jaro but gives a boost to sequences that have a common prefix.
-pub fn generic_jaro_winkler<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Iter2) -> f64
-    where &'a Iter1: IntoIterator<Item=Elem1>,
-          &'b Iter2: IntoIterator<Item=Elem2>,
+pub fn generic_jaro_winkler<Iter1, Iter2, Elem1, Elem2>(a: Iter1, b: Iter2) -> f64
+    where Iter1: IntoIterator<Item=Elem1> + Clone,
+          Iter2: IntoIterator<Item=Elem2> + Clone,
           Elem1: PartialEq<Elem2> {
-    let jaro_distance = generic_jaro(a, b);
+    let jaro_distance = generic_jaro(a.clone(), b.clone());
 
     // Don't limit the length of the common prefix
     let prefix_length = a.into_iter()
@@ -197,13 +197,13 @@ pub fn jaro_winkler(a: &str, b: &str) -> f64 {
 ///
 /// assert_eq!(3, generic_levenshtein(&[1,2,3], &[1,2,3,4,5,6]));
 /// ```
-pub fn generic_levenshtein<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Iter2) -> usize
-    where &'a Iter1: IntoIterator<Item=Elem1>,
-          &'b Iter2: IntoIterator<Item=Elem2>,
+pub fn generic_levenshtein<Iter1, Iter2, Elem1, Elem2>(a: Iter1, b: Iter2) -> usize
+    where Iter1: IntoIterator<Item=Elem1> + Clone,
+          Iter2: IntoIterator<Item=Elem2> + Clone,
           Elem1: PartialEq<Elem2> {
-    let b_len = b.into_iter().count();
+    let b_len = b.clone().into_iter().count();
 
-    if a.into_iter().next().is_none() { return b_len; }
+    if a.clone().into_iter().next().is_none() { return b_len; }
 
     let mut cache: Vec<usize> = (1..b_len+1).collect();
 
@@ -213,7 +213,7 @@ pub fn generic_levenshtein<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: 
         result = i + 1;
         let mut distance_b = i;
 
-        for (j, b_elem) in b.into_iter().enumerate() {
+        for (j, b_elem) in b.clone().into_iter().enumerate() {
             let cost = if a_elem == b_elem { 0usize } else { 1usize };
             let distance_a = distance_b + cost;
             distance_b = cache[j];
