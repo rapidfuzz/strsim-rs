@@ -427,7 +427,6 @@ fn bigrams(s: &str) -> impl Iterator<Item=(char, char)> + '_ {
 /// assert_eq!(0.0, sorensen_dice("", "a"));
 /// assert_eq!(0.0, sorensen_dice("french", "quebec"));
 /// assert_eq!(1.0, sorensen_dice("ferris", "ferris"));
-/// assert_eq!(1.0, sorensen_dice("ferris", "ferris"));
 /// assert_eq!(0.8888888888888888, sorensen_dice("feris", "ferris"));
 /// ```
 pub fn sorensen_dice(a: &str, b: &str) -> f64 {
