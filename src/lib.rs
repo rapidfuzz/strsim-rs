@@ -214,10 +214,15 @@ pub fn generic_levenshtein<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: 
         let mut distance_b = i;
 
         for (j, b_elem) in b.into_iter().enumerate() {
-            let cost = if a_elem == b_elem { 0usize } else { 1usize };
-            let distance_a = distance_b + cost;
-            distance_b = cache[j];
-            result = min(result + 1, min(distance_a, distance_b + 1));
+            if a_elem == b_elem{
+                let distance_a = distance_b;
+                distance_b = cache[j];
+                result = distance_a;
+            }else{
+                let distance_a = distance_b + 1;
+                distance_b = cache[j];
+                result = min(result + 1, min(distance_a, distance_b + 1));
+            }
             cache[j] = result;
         }
     }
