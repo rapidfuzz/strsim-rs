@@ -464,6 +464,50 @@ pub fn sorensen_dice(a: &str, b: &str) -> f64 {
     (2 * intersection_size) as f64 / (a.len() + b.len() - 2) as f64
 }
 
+/// Uses LCS algorithm to find longest common subsequence
+/// and then divides it by the length of the longes string
+/// ```
+/// use strsim::lcs_normalized;
+///
+/// assert_eq!(1.0, lcs_normalized("", ""));
+/// assert_eq!(0.0, lcs_normalized("", "umbrella"));
+/// assert_eq!(0.8, lcs_normalized("night", "fight"));
+/// assert_eq!(1.0, lcs_normalized("ferris", "ferris"));
+/// ```
+pub fn lcs_normalized(left: impl AsRef<str>, right: impl AsRef<str>) -> f64 {
+    let (len1, len2) = (left.as_ref().len(), right.as_ref().len());
+    let lcs_len = lcs_length(left.as_ref(), right.as_ref());
+    let size = max(len1, len2);
+    // Empty strings should match
+    if size == 0 { 1.0 } else { lcs_len as f64 / size as f64 }
+}
+
+#[inline]
+fn get_shorter_longer_strings(left: impl AsRef<str>, right: impl AsRef<str>) -> (String, String) {
+    if left.as_ref().len() < right.as_ref().len() {
+        (left.as_ref().to_string(), right.as_ref().to_string())
+    } else {
+        (right.as_ref().to_string(), left.as_ref().to_string())
+    }
+}
+
+#[inline]
+fn lcs_length(left: impl AsRef<str>, right: impl AsRef<str>) -> usize {
+    let (left, right) = get_shorter_longer_strings(left, right);
+    let mut table = vec![vec![0 as usize; left.len() + 1]; 2];
+    for rletter in right.chars() {
+        for (col, lletter) in left.chars().enumerate() {
+            if rletter == lletter {
+                table[1][col + 1] = 1 + table[0][col];
+            } else {
+                table[1][col + 1] = max(table[0][col + 1], table[1][col]);
+            }
+        }
+        table[0] = table.pop().unwrap();
+        table.push(vec![0 as usize; left.len() + 1]);
+    }
+    *table[0].last().unwrap()
+}
 
 #[cfg(test)]
 mod tests {
@@ -988,5 +1032,72 @@ mod tests {
             0.7741935483870968,
             sorensen_dice("this has one extra word", "this has one word")
         );
+    }
+
+    #[test]
+    fn lcs_normalized_diff_unequal_length() {
+        assert!(lcs_normalized("damerau", "aderuaxyz") < 0.5);
+    }
+
+    #[test]
+    fn lcs_normalized_diff_unequal_length_reversed() {
+        assert!(lcs_normalized("aderuaxyz", "damerau") < 0.5);
+    }
+
+    #[test]
+    fn lcs_normalized_diff_comedians() {
+        assert!(lcs_normalized("Stewart", "Colbert") < 0.5);
+    }
+
+    #[test]
+    fn lcs_normalized_many_transpositions() {
+        assert!(lcs_normalized("abcdefghijkl", "bacedfgihjlk") < 0.7);
+    }
+
+    #[test]
+    fn lcs_normalized_diff_longer() {
+        let a = "The quick brown fox jumped over the angry dog.";
+        let b = "Lehem ipsum dolor sit amet, dicta latine an eam.";
+        assert!(lcs_normalized(a, b) < 0.4);
+    }
+
+    #[test]
+    fn lcs_normalized_beginning_transposition() {
+        assert!(lcs_normalized("foobar", "ofobar") > 0.8);
+    }
+
+    #[test]
+    fn lcs_normalized_end_transposition() {
+        assert!(lcs_normalized("specter", "spectre") > 0.8);
+    }
+
+    #[test]
+    fn lcs_normalized_unrestricted_edit() {
+        assert!(lcs_normalized("a cat", "an abct") > 0.5);
+    }
+
+    #[test]
+    fn lcs_normalized_diff_short() {
+        assert!(lcs_normalized("levenshtein", "löwenbräu") < 0.01);
+    }
+
+    #[test]
+    fn lcs_normalized_for_empty_strings() {
+        assert!(lcs_normalized("", "") > 0.99);
+    }
+
+    #[test]
+    fn lcs_normalized_first_empty() {
+        assert!(lcs_normalized("", "flower") < 0.01);
+    }
+
+    #[test]
+    fn lcs_normalized_second_empty() {
+        assert!(lcs_normalized("tree", "") < 0.01);
+    }
+
+    #[test]
+    fn lcs_normalized_identical_strings() {
+        assert!(lcs_normalized("sunglasses", "sunglasses") > 0.99);
     }
 }
