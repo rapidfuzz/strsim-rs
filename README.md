@@ -68,7 +68,7 @@ fn main() {
     assert_eq!(sorensen_dice("web applications", "applications of the web"),
         0.7878787878787878);
 
-    assert!(sorensen_dice("foobar", "ofobar") > 0.8);
+    assert!(lcs_normalized("foobar", "ofobar") > 0.8);
 }
 ```
 
