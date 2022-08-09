@@ -2,8 +2,6 @@
 
 #![forbid(unsafe_code)]
 
-extern crate similar_string;
-
 use std::char;
 use std::cmp::{max, min};
 use std::collections::HashMap;
@@ -11,8 +9,6 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::hash::Hash;
 use std::str::Chars;
-
-use similar_string::compare_similarity;
 
 #[derive(Debug, PartialEq)]
 pub enum StrSimError {
@@ -478,8 +474,39 @@ pub fn sorensen_dice(a: &str, b: &str) -> f64 {
 /// assert_eq!(0.8, lcs_normalized("night", "fight"));
 /// assert_eq!(1.0, lcs_normalized("ferris", "ferris"));
 /// ```
-pub fn lcs_normalized(a: &str, b: &str) -> f64 {
-    compare_similarity(a, b)
+pub fn lcs_normalized(left: impl AsRef<str>, right: impl AsRef<str>) -> f64 {
+    let (len1, len2) = (left.as_ref().len(), right.as_ref().len());
+    let lcs_len = lcs_length(left.as_ref(), right.as_ref());
+    let size = max(len1, len2);
+    // Empty strings should match
+    if size == 0 { 1.0 } else { lcs_len as f64 / size as f64 }
+}
+
+#[inline]
+fn get_shorter_longer_strings(left: impl AsRef<str>, right: impl AsRef<str>) -> (String, String) {
+    if left.as_ref().len() < right.as_ref().len() {
+        (left.as_ref().to_string(), right.as_ref().to_string())
+    } else {
+        (right.as_ref().to_string(), left.as_ref().to_string())
+    }
+}
+
+#[inline]
+fn lcs_length(left: impl AsRef<str>, right: impl AsRef<str>) -> usize {
+    let (left, right) = get_shorter_longer_strings(left, right);
+    let mut table = vec![vec![0 as usize; left.len() + 1]; 2];
+    for rletter in right.chars() {
+        for (col, lletter) in left.chars().enumerate() {
+            if rletter == lletter {
+                table[1][col + 1] = 1 + table[0][col];
+            } else {
+                table[1][col + 1] = max(table[0][col + 1], table[1][col]);
+            }
+        }
+        table[0] = table.pop().unwrap();
+        table.push(vec![0 as usize; left.len() + 1]);
+    }
+    *table[0].last().unwrap()
 }
 
 #[cfg(test)]
@@ -1009,68 +1036,68 @@ mod tests {
 
     #[test]
     fn lcs_normalized_diff_unequal_length() {
-        assert!(compare_similarity("damerau", "aderuaxyz") < 0.5);
+        assert!(lcs_normalized("damerau", "aderuaxyz") < 0.5);
     }
 
     #[test]
     fn lcs_normalized_diff_unequal_length_reversed() {
-        assert!(compare_similarity("aderuaxyz", "damerau") < 0.5);
+        assert!(lcs_normalized("aderuaxyz", "damerau") < 0.5);
     }
 
     #[test]
     fn lcs_normalized_diff_comedians() {
-        assert!(compare_similarity("Stewart", "Colbert") < 0.5);
+        assert!(lcs_normalized("Stewart", "Colbert") < 0.5);
     }
 
     #[test]
     fn lcs_normalized_many_transpositions() {
-        assert!(compare_similarity("abcdefghijkl", "bacedfgihjlk") < 0.7);
+        assert!(lcs_normalized("abcdefghijkl", "bacedfgihjlk") < 0.7);
     }
 
     #[test]
     fn lcs_normalized_diff_longer() {
         let a = "The quick brown fox jumped over the angry dog.";
         let b = "Lehem ipsum dolor sit amet, dicta latine an eam.";
-        assert!(compare_similarity(a, b) < 0.4);
+        assert!(lcs_normalized(a, b) < 0.4);
     }
 
     #[test]
     fn lcs_normalized_beginning_transposition() {
-        assert!(compare_similarity("foobar", "ofobar") > 0.8);
+        assert!(lcs_normalized("foobar", "ofobar") > 0.8);
     }
 
     #[test]
     fn lcs_normalized_end_transposition() {
-        assert!(compare_similarity("specter", "spectre") > 0.8);
+        assert!(lcs_normalized("specter", "spectre") > 0.8);
     }
 
     #[test]
     fn lcs_normalized_unrestricted_edit() {
-        assert!(compare_similarity("a cat", "an abct") > 0.5);
+        assert!(lcs_normalized("a cat", "an abct") > 0.5);
     }
 
     #[test]
     fn lcs_normalized_diff_short() {
-        assert!(compare_similarity("levenshtein", "löwenbräu") < 0.01);
+        assert!(lcs_normalized("levenshtein", "löwenbräu") < 0.01);
     }
 
     #[test]
     fn lcs_normalized_for_empty_strings() {
-        assert!(compare_similarity("", "") > 0.99);
+        assert!(lcs_normalized("", "") > 0.99);
     }
 
     #[test]
     fn lcs_normalized_first_empty() {
-        assert!(compare_similarity("", "flower") < 0.01);
+        assert!(lcs_normalized("", "flower") < 0.01);
     }
 
     #[test]
     fn lcs_normalized_second_empty() {
-        assert!(compare_similarity("tree", "") < 0.01);
+        assert!(lcs_normalized("tree", "") < 0.01);
     }
 
     #[test]
     fn lcs_normalized_identical_strings() {
-        assert!(compare_similarity("sunglasses", "sunglasses") > 0.99);
+        assert!(lcs_normalized("sunglasses", "sunglasses") > 0.99);
     }
 }

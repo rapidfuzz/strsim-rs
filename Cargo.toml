@@ -13,6 +13,3 @@ homepage = "https://github.com/dguo/strsim-rs"
 repository = "https://github.com/dguo/strsim-rs"
 documentation = "https://docs.rs/strsim/"
 exclude = ["/.github", "/dev"]
-
-[dependencies]
-similar-string = "1.4.3"
