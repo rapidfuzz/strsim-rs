@@ -2,6 +2,8 @@
 
 #![forbid(unsafe_code)]
 
+extern crate similar_string;
+
 use std::char;
 use std::cmp::{max, min};
 use std::collections::HashMap;
@@ -9,6 +11,8 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::hash::Hash;
 use std::str::Chars;
+
+use similar_string::compare_similarity;
 
 #[derive(Debug, PartialEq)]
 pub enum StrSimError {
@@ -464,6 +468,19 @@ pub fn sorensen_dice(a: &str, b: &str) -> f64 {
     (2 * intersection_size) as f64 / (a.len() + b.len() - 2) as f64
 }
 
+/// Uses LCS algorithm to find longest common subsequence
+/// and then divides it by the length of the longes string
+/// ```
+/// use strsim::lcs_normalized;
+///
+/// assert_eq!(1.0, lcs_normalized("", ""));
+/// assert_eq!(0.0, lcs_normalized("", "umbrella"));
+/// assert_eq!(0.8, lcs_normalized("night", "fight"));
+/// assert_eq!(1.0, lcs_normalized("ferris", "ferris"));
+/// ```
+pub fn lcs_normalized(a: &str, b: &str) -> f64 {
+    compare_similarity(a, b)
+}
 
 #[cfg(test)]
 mod tests {
@@ -988,5 +1005,72 @@ mod tests {
             0.7741935483870968,
             sorensen_dice("this has one extra word", "this has one word")
         );
+    }
+
+    #[test]
+    fn lcs_normalized_diff_unequal_length() {
+        assert!(compare_similarity("damerau", "aderuaxyz") < 0.5);
+    }
+
+    #[test]
+    fn lcs_normalized_diff_unequal_length_reversed() {
+        assert!(compare_similarity("aderuaxyz", "damerau") < 0.5);
+    }
+
+    #[test]
+    fn lcs_normalized_diff_comedians() {
+        assert!(compare_similarity("Stewart", "Colbert") < 0.5);
+    }
+
+    #[test]
+    fn lcs_normalized_many_transpositions() {
+        assert!(compare_similarity("abcdefghijkl", "bacedfgihjlk") < 0.7);
+    }
+
+    #[test]
+    fn lcs_normalized_diff_longer() {
+        let a = "The quick brown fox jumped over the angry dog.";
+        let b = "Lehem ipsum dolor sit amet, dicta latine an eam.";
+        assert!(compare_similarity(a, b) < 0.4);
+    }
+
+    #[test]
+    fn lcs_normalized_beginning_transposition() {
+        assert!(compare_similarity("foobar", "ofobar") > 0.8);
+    }
+
+    #[test]
+    fn lcs_normalized_end_transposition() {
+        assert!(compare_similarity("specter", "spectre") > 0.8);
+    }
+
+    #[test]
+    fn lcs_normalized_unrestricted_edit() {
+        assert!(compare_similarity("a cat", "an abct") > 0.5);
+    }
+
+    #[test]
+    fn lcs_normalized_diff_short() {
+        assert!(compare_similarity("levenshtein", "löwenbräu") < 0.01);
+    }
+
+    #[test]
+    fn lcs_normalized_for_empty_strings() {
+        assert!(compare_similarity("", "") > 0.99);
+    }
+
+    #[test]
+    fn lcs_normalized_first_empty() {
+        assert!(compare_similarity("", "flower") < 0.01);
+    }
+
+    #[test]
+    fn lcs_normalized_second_empty() {
+        assert!(compare_similarity("tree", "") < 0.01);
+    }
+
+    #[test]
+    fn lcs_normalized_identical_strings() {
+        assert!(compare_similarity("sunglasses", "sunglasses") > 0.99);
     }
 }

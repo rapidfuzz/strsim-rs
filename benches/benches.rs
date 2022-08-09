@@ -97,4 +97,13 @@ mod benches {
             strsim::sorensen_dice(&a, &b);
         })
     }
+
+    #[bench]
+    fn bench_lcs_normalized(bencher: &mut Bencher) {
+        let a = "Philosopher Friedrich Nietzsche";
+        let b = "Philosopher Jean-Paul Sartre";
+        bencher.iter(|| {
+            strsim::lcs_normalized(&a, &b);
+        })
+    }
 }
