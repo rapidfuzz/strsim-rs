@@ -32,14 +32,20 @@ pub type HammingResult = Result<usize, StrSimError>;
 /// Calculates the number of positions in the two sequences where the elements
 /// differ. Returns an error if the sequences have different lengths.
 pub fn generic_hamming<Iter1, Iter2, Elem1, Elem2>(a: Iter1, b: Iter2) -> HammingResult
-    where Iter1: IntoIterator<Item=Elem1>,
-          Iter2: IntoIterator<Item=Elem2>,
-          Elem1: PartialEq<Elem2> {
+where
+    Iter1: IntoIterator<Item = Elem1>,
+    Iter2: IntoIterator<Item = Elem2>,
+    Elem1: PartialEq<Elem2>,
+{
     let (mut ita, mut itb) = (a.into_iter(), b.into_iter());
     let mut count = 0;
     loop {
-        match (ita.next(), itb.next()){
-            (Some(x), Some(y)) => if x != y { count += 1 },
+        match (ita.next(), itb.next()) {
+            (Some(x), Some(y)) => {
+                if x != y {
+                    count += 1
+                }
+            }
             (None, None) => return Ok(count),
             _ => return Err(StrSimError::DifferentLengthArgs),
         }
@@ -63,9 +69,11 @@ pub fn hamming(a: &str, b: &str) -> HammingResult {
 /// Calculates the Jaro similarity between two sequences. The returned value
 /// is between 0.0 and 1.0 (higher value means more similar).
 pub fn generic_jaro<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Iter2) -> f64
-    where &'a Iter1: IntoIterator<Item=Elem1>,
-          &'b Iter2: IntoIterator<Item=Elem2>,
-          Elem1: PartialEq<Elem2> {
+where
+    &'a Iter1: IntoIterator<Item = Elem1>,
+    &'b Iter2: IntoIterator<Item = Elem2>,
+    Elem1: PartialEq<Elem2>,
+{
     let a_len = a.into_iter().count();
     let b_len = b.into_iter().count();
 
@@ -76,7 +84,11 @@ pub fn generic_jaro<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Ite
     } else if a_len == 0 || b_len == 0 {
         return 0.0;
     } else if a_len == 1 && b_len == 1 {
-        return if a.into_iter().eq(b.into_iter()) { 1.0} else { 0.0 };
+        return if a.into_iter().eq(b.into_iter()) {
+            1.0
+        } else {
+            0.0
+        };
     }
 
     let search_range = (max(a_len, b_len) / 2) - 1;
@@ -106,8 +118,7 @@ pub fn generic_jaro<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Ite
         }
 
         for (j, b_elem) in b.into_iter().enumerate() {
-            if min_bound <= j && j <= max_bound && a_elem == b_elem &&
-                !b_consumed[j] {
+            if min_bound <= j && j <= max_bound && a_elem == b_elem && !b_consumed[j] {
                 b_consumed[j] = true;
                 matches += 1.0;
 
@@ -124,9 +135,10 @@ pub fn generic_jaro<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Ite
     if matches == 0.0 {
         0.0
     } else {
-        (1.0 / 3.0) * ((matches / a_len as f64) +
-            (matches / b_len as f64) +
-            ((matches - transpositions) / matches))
+        (1.0 / 3.0)
+            * ((matches / a_len as f64)
+                + (matches / b_len as f64)
+                + ((matches - transpositions) / matches))
     }
 }
 
@@ -156,13 +168,16 @@ pub fn jaro(a: &str, b: &str) -> f64 {
 
 /// Like Jaro but gives a boost to sequences that have a common prefix.
 pub fn generic_jaro_winkler<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Iter2) -> f64
-    where &'a Iter1: IntoIterator<Item=Elem1>,
-          &'b Iter2: IntoIterator<Item=Elem2>,
-          Elem1: PartialEq<Elem2> {
+where
+    &'a Iter1: IntoIterator<Item = Elem1>,
+    &'b Iter2: IntoIterator<Item = Elem2>,
+    Elem1: PartialEq<Elem2>,
+{
     let jaro_distance = generic_jaro(a, b);
 
     // Don't limit the length of the common prefix
-    let prefix_length = a.into_iter()
+    let prefix_length = a
+        .into_iter()
         .zip(b.into_iter())
         .take_while(|&(ref a_elem, ref b_elem)| a_elem == b_elem)
         .count();
@@ -198,14 +213,18 @@ pub fn jaro_winkler(a: &str, b: &str) -> f64 {
 /// assert_eq!(3, generic_levenshtein(&[1,2,3], &[1,2,3,4,5,6]));
 /// ```
 pub fn generic_levenshtein<'a, 'b, Iter1, Iter2, Elem1, Elem2>(a: &'a Iter1, b: &'b Iter2) -> usize
-    where &'a Iter1: IntoIterator<Item=Elem1>,
-          &'b Iter2: IntoIterator<Item=Elem2>,
-          Elem1: PartialEq<Elem2> {
+where
+    &'a Iter1: IntoIterator<Item = Elem1>,
+    &'b Iter2: IntoIterator<Item = Elem2>,
+    Elem1: PartialEq<Elem2>,
+{
     let b_len = b.into_iter().count();
 
-    if a.into_iter().next().is_none() { return b_len; }
+    if a.into_iter().next().is_none() {
+        return b_len;
+    }
 
-    let mut cache: Vec<usize> = (1..b_len+1).collect();
+    let mut cache: Vec<usize> = (1..b_len + 1).collect();
 
     let mut result = 0;
 
@@ -267,9 +286,13 @@ pub fn normalized_levenshtein(a: &str, b: &str) -> f64 {
 pub fn osa_distance(a: &str, b: &str) -> usize {
     let a_len = a.chars().count();
     let b_len = b.chars().count();
-    if a == b { return 0; }
-    else if a_len == 0 { return b_len; }
-    else if b_len == 0 { return a_len; }
+    if a == b {
+        return 0;
+    } else if a_len == 0 {
+        return b_len;
+    } else if b_len == 0 {
+        return a_len;
+    }
 
     let mut prev_two_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
     let mut prev_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
@@ -289,13 +312,13 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
 
         for (j, b_char) in b.chars().enumerate() {
             let cost = if a_char == b_char { 0 } else { 1 };
-            curr_distances[j + 1] = min(curr_distances[j] + 1,
-                                        min(prev_distances[j + 1] + 1,
-                                            prev_distances[j] + cost));
-            if i > 0 && j > 0 && a_char != b_char &&
-                a_char == prev_b_char && b_char == prev_a_char {
-                curr_distances[j + 1] = min(curr_distances[j + 1],
-                                            prev_two_distances[j - 1] + 1);
+            curr_distances[j + 1] = min(
+                curr_distances[j] + 1,
+                min(prev_distances[j + 1] + 1, prev_distances[j] + cost),
+            );
+            if i > 0 && j > 0 && a_char != b_char && a_char == prev_b_char && b_char == prev_a_char
+            {
+                curr_distances[j + 1] = min(curr_distances[j + 1], prev_two_distances[j - 1] + 1);
             }
 
             prev_b_char = b_char;
@@ -307,11 +330,10 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
     }
 
     curr_distances[b_len]
-
 }
 
 /* Returns the final index for a value in a single vector that represents a fixed
-   2d grid */
+2d grid */
 fn flat_index(i: usize, j: usize, width: usize) -> usize {
     j * width + i
 }
@@ -325,12 +347,18 @@ fn flat_index(i: usize, j: usize, width: usize) -> usize {
 /// assert_eq!(2, generic_damerau_levenshtein(&[1,2], &[2,3,1]));
 /// ```
 pub fn generic_damerau_levenshtein<Elem>(a_elems: &[Elem], b_elems: &[Elem]) -> usize
-    where Elem: Eq + Hash + Clone {
+where
+    Elem: Eq + Hash + Clone,
+{
     let a_len = a_elems.len();
     let b_len = b_elems.len();
 
-    if a_len == 0 { return b_len; }
-    if b_len == 0 { return a_len; }
+    if a_len == 0 {
+        return b_len;
+    }
+    if b_len == 0 {
+        return a_len;
+    }
 
     let width = a_len + 2;
     let mut distances = vec![0; (a_len + 2) * (b_len + 2)];
@@ -355,13 +383,13 @@ pub fn generic_damerau_levenshtein<Elem>(a_elems: &[Elem], b_elems: &[Elem]) -> 
         for j in 1..(b_len + 1) {
             let k = match elems.get(&b_elems[j - 1]) {
                 Some(&value) => value,
-                None => 0
+                None => 0,
             };
 
             let insertion_cost = distances[flat_index(i, j + 1, width)] + 1;
             let deletion_cost = distances[flat_index(i + 1, j, width)] + 1;
-            let transposition_cost = distances[flat_index(k, db, width)] +
-                (i - k - 1) + 1 + (j - db - 1);
+            let transposition_cost =
+                distances[flat_index(k, db, width)] + (i - k - 1) + 1 + (j - db - 1);
 
             let mut substitution_cost = distances[flat_index(i, j, width)] + 1;
             if a_elems[i - 1] == b_elems[j - 1] {
@@ -369,8 +397,10 @@ pub fn generic_damerau_levenshtein<Elem>(a_elems: &[Elem], b_elems: &[Elem]) -> 
                 substitution_cost -= 1;
             }
 
-            distances[flat_index(i + 1, j + 1, width)] = min(substitution_cost,
-                min(insertion_cost, min(deletion_cost, transposition_cost)));
+            distances[flat_index(i + 1, j + 1, width)] = min(
+                substitution_cost,
+                min(insertion_cost, min(deletion_cost, transposition_cost)),
+            );
         }
 
         elems.insert(a_elems[i - 1].clone(), i);
@@ -412,10 +442,9 @@ pub fn normalized_damerau_levenshtein(a: &str, b: &str) -> f64 {
 }
 
 /// Returns an Iterator of char tuples.
-fn bigrams(s: &str) -> impl Iterator<Item=(char, char)> + '_ {
+fn bigrams(s: &str) -> impl Iterator<Item = (char, char)> + '_ {
     s.chars().zip(s.chars().skip(1))
 }
-
 
 /// Calculates a Sørensen-Dice similarity distance using bigrams.
 /// See http://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient.
@@ -463,7 +492,6 @@ pub fn sorensen_dice(a: &str, b: &str) -> f64 {
 
     (2 * intersection_size) as f64 / (a.len() + b.len() - 2) as f64
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -590,8 +618,7 @@ mod tests {
 
     #[test]
     fn jaro_names() {
-        assert!((0.392 - jaro("Friedrich Nietzsche",
-                              "Jean-Paul Sartre")).abs() < 0.001);
+        assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() < 0.001);
     }
 
     #[test]
@@ -616,10 +643,8 @@ mod tests {
 
     #[test]
     fn jaro_winkler_multibyte() {
-        assert!((0.89 - jaro_winkler("testabctest", "testöঙ香test")).abs() <
-            0.001);
-        assert!((0.89 - jaro_winkler("testöঙ香test", "testabctest")).abs() <
-            0.001);
+        assert!((0.89 - jaro_winkler("testabctest", "testöঙ香test")).abs() < 0.001);
+        assert!((0.89 - jaro_winkler("testöঙ香test", "testabctest")).abs() < 0.001);
     }
 
     #[test]
@@ -650,14 +675,12 @@ mod tests {
 
     #[test]
     fn jaro_winkler_names() {
-        assert!((0.562 - jaro_winkler("Friedrich Nietzsche",
-                                      "Fran-Paul Sartre")).abs() < 0.001);
+        assert!((0.562 - jaro_winkler("Friedrich Nietzsche", "Fran-Paul Sartre")).abs() < 0.001);
     }
 
     #[test]
     fn jaro_winkler_long_prefix() {
-        assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() <
-            0.001);
+        assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() < 0.001);
     }
 
     #[test]
@@ -672,9 +695,11 @@ mod tests {
 
     #[test]
     fn jaro_winkler_very_long_prefix() {
-        assert!((1.0 - jaro_winkler("thequickbrownfoxjumpedoverx",
-                                    "thequickbrownfoxjumpedovery")).abs() <
-            0.001);
+        assert!(
+            (1.0 - jaro_winkler("thequickbrownfoxjumpedoverx", "thequickbrownfoxjumpedovery"))
+                .abs()
+                < 0.001
+        );
     }
 
     #[test]
@@ -913,7 +938,9 @@ mod tests {
 
     #[test]
     fn normalized_damerau_levenshtein_diff_short() {
-        assert!((normalized_damerau_levenshtein("levenshtein", "löwenbräu") - 0.27272).abs() < 0.00001);
+        assert!(
+            (normalized_damerau_levenshtein("levenshtein", "löwenbräu") - 0.27272).abs() < 0.00001
+        );
     }
 
     #[test]
