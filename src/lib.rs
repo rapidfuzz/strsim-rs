@@ -90,8 +90,10 @@ where
         search_range -= 1;
     }
 
-    let mut a_flags = vec![false; a_len];
-    let mut b_flags = vec![false; b_len];
+    // combine memory allocations to reduce runtime
+    let mut flags_memory = vec![false; a_len + b_len];
+    let (a_flags, b_flags) = flags_memory.split_at_mut(a_len);
+
     let mut matches = 0;
 
     for (i, a_elem) in a.into_iter().enumerate() {
@@ -118,10 +120,10 @@ where
     if matches != 0 {
         let mut b_iter = b_flags.into_iter().zip(b);
         for (a_flag, ch1) in a_flags.into_iter().zip(a) {
-            if a_flag {
+            if *a_flag {
                 loop {
                     if let Some((b_flag, ch2)) = b_iter.next() {
-                        if !b_flag {
+                        if !*b_flag {
                             continue;
                         }
 
