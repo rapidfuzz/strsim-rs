@@ -9,6 +9,7 @@ use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::hash::Hash;
 use std::str::Chars;
+use std::mem;
 
 #[derive(Debug, PartialEq)]
 pub enum StrSimError {
@@ -332,10 +333,16 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
     curr_distances[b_len]
 }
 
-/* Returns the final index for a value in a single vector that represents a fixed
-2d grid */
-fn flat_index(i: usize, j: usize, width: usize) -> usize {
-    j * width + i
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct RowId {
+    val: isize,
+}
+
+impl Default for RowId {
+    fn default() -> Self {
+        Self { val: -1 }
+    }
 }
 
 /// Like optimal string alignment, but substrings can be edited an unlimited
@@ -346,67 +353,74 @@ fn flat_index(i: usize, j: usize, width: usize) -> usize {
 ///
 /// assert_eq!(2, generic_damerau_levenshtein(&[1,2], &[2,3,1]));
 /// ```
-pub fn generic_damerau_levenshtein<Elem>(a_elems: &[Elem], b_elems: &[Elem]) -> usize
+pub fn generic_damerau_levenshtein<Iter1, Iter2, Elem>(s1_: Iter1, s2_: Iter2) -> usize
 where
+    Iter1: IntoIterator<Item = Elem>,
+    Iter2: IntoIterator<Item = Elem>,
     Elem: Eq + Hash + Clone,
+    Iter1::IntoIter: Clone,
+    Iter2::IntoIter: Clone
 {
-    let a_len = a_elems.len();
-    let b_len = b_elems.len();
+    // The implementations is based on the paper
+    // `Linear space string correction algorithm using the Damerau-Levenshtein distance`
+    // from Chunchun Zhao and Sartaj Sahni
+    //
+    // It has a runtime complexity of `O(N*M)` and a memory usage of `O(N+M)`.
+    let s1 = s1_.into_iter();
+    let s2 = s2_.into_iter();
+    let len1 = s1.clone().count();
+    let len2 = s2.clone().count();
+    let max_val = max(len1, len2) as isize + 1;
 
-    if a_len == 0 {
-        return b_len;
-    }
-    if b_len == 0 {
-        return a_len;
-    }
+    let mut last_row_id: HashMap<Elem, RowId> = HashMap::with_capacity(64);
 
-    let width = a_len + 2;
-    let mut distances = vec![0; (a_len + 2) * (b_len + 2)];
-    let max_distance = a_len + b_len;
-    distances[0] = max_distance;
+    let size = len2 + 2;
+    let mut fr = vec![max_val; size];
+    let mut r1 = vec![max_val; size];
+    let mut r: Vec<isize> = (max_val..=max_val).chain(0..(size - 1) as isize).collect();
 
-    for i in 0..(a_len + 1) {
-        distances[flat_index(i + 1, 0, width)] = max_distance;
-        distances[flat_index(i + 1, 1, width)] = i;
-    }
+    for (i, ch1) in s1.enumerate().map(|(i, ch1)| (i + 1, ch1)) {
+        mem::swap(&mut r, &mut r1);
+        let mut last_col_id: isize = -1;
+        let mut last_i2l1 = r[1];
+        r[1] = i as isize;
+        let mut t = max_val;
 
-    for j in 0..(b_len + 1) {
-        distances[flat_index(0, j + 1, width)] = max_distance;
-        distances[flat_index(1, j + 1, width)] = j;
-    }
+        for (j, ch2) in s2.clone().enumerate().map(|(j, ch2)| (j + 1, ch2)) {
+            let diag = r1[j] + isize::from(ch1 != ch2);
+            let left = r[j] + 1;
+            let up = r1[j + 1] + 1;
+            let mut temp = min(diag, min(left, up));
 
-    let mut elems: HashMap<Elem, usize> = HashMap::with_capacity(64);
+            if ch1 == ch2 {
+                last_col_id = j as isize; // last occurence of s1_i
+                fr[j + 1] = r1[j - 1]; // save H_k-1,j-2
+                t = last_i2l1; // save H_i-2,l-1
+            } else {
+                let k = if let Some(row_id) = last_row_id.get(&ch2) {
+                    row_id.val
+                } else {
+                    -1
+                };
+                let l = last_col_id;
 
-    for i in 1..(a_len + 1) {
-        let mut db = 0;
-
-        for j in 1..(b_len + 1) {
-            let k = match elems.get(&b_elems[j - 1]) {
-                Some(&value) => value,
-                None => 0,
-            };
-
-            let insertion_cost = distances[flat_index(i, j + 1, width)] + 1;
-            let deletion_cost = distances[flat_index(i + 1, j, width)] + 1;
-            let transposition_cost =
-                distances[flat_index(k, db, width)] + (i - k - 1) + 1 + (j - db - 1);
-
-            let mut substitution_cost = distances[flat_index(i, j, width)] + 1;
-            if a_elems[i - 1] == b_elems[j - 1] {
-                db = j;
-                substitution_cost -= 1;
+                if j as isize - l == 1 {
+                    let transpose = fr[j + 1] + (i as isize - k);
+                    temp = min(temp, transpose);
+                } else if i as isize - k == 1 {
+                    let transpose = t + (j as isize - l);
+                    temp = min(temp, transpose);
+                }
             }
 
-            distances[flat_index(i + 1, j + 1, width)] = min(
-                substitution_cost,
-                min(insertion_cost, min(deletion_cost, transposition_cost)),
-            );
+            last_i2l1 = r[j + 1];
+            r[j + 1] = temp;
         }
 
-        elems.insert(a_elems[i - 1].clone(), i);
+        last_row_id.insert(ch1, RowId{val:i as isize});
     }
 
-    distances[flat_index(a_len + 1, b_len + 1, width)]
+    r[len2 + 1] as usize
 }
 
 /// Like optimal string alignment, but substrings can be edited an unlimited
@@ -418,8 +432,7 @@ where
 /// assert_eq!(2, damerau_levenshtein("ab", "bca"));
 /// ```
 pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
-    let (x, y): (Vec<_>, Vec<_>) = (a.chars().collect(), b.chars().collect());
-    generic_damerau_levenshtein(x.as_slice(), y.as_slice())
+    generic_damerau_levenshtein(a.chars(), b.chars())
 }
 
 /// Calculates a normalized score of the Damerau–Levenshtein algorithm between
