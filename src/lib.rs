@@ -98,22 +98,17 @@ where
     let mut matches = 0;
 
     for (i, a_elem) in a.into_iter().enumerate() {
-        let min_bound =
-            // prevent integer wrapping
-            if i > search_range {
-                max(0, i - search_range)
-            } else {
-                0
-            };
+        // prevent integer wrapping
+        let min_bound = if i > search_range {
+            i - search_range
+        } else {
+            0
+        };
 
-        let max_bound = min(b_len - 1, i + search_range);
+        let max_bound = min(b_len, i + search_range + 1);
 
-        if min_bound > max_bound {
-            continue;
-        }
-
-        for (j, b_elem) in b.into_iter().enumerate() {
-            if min_bound <= j && j <= max_bound && a_elem == b_elem && !b_flags[j] {
+        for (j, b_elem) in b.into_iter().enumerate().take(max_bound).skip(min_bound) {
+            if a_elem == b_elem && !b_flags[j] {
                 a_flags[i] = true;
                 b_flags[j] = true;
                 matches += 1;
