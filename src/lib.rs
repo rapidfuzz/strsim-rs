@@ -93,11 +93,9 @@ where
 
     let search_range = (max(a_len, b_len) / 2) - 1;
 
-    let mut b_consumed = vec![false; b_len];
-    let mut matches = 0.0;
-
-    let mut transpositions = 0.0;
-    let mut b_match_index = 0;
+    let mut a_flags = vec![false; a_len];
+    let mut b_flags = vec![false; b_len];
+    let mut matches = 0;
 
     for (i, a_elem) in a.into_iter().enumerate() {
         let min_bound =
@@ -115,27 +113,39 @@ where
         }
 
         for (j, b_elem) in b.into_iter().enumerate() {
-            if min_bound <= j && j <= max_bound && a_elem == b_elem && !b_consumed[j] {
-                b_consumed[j] = true;
-                matches += 1.0;
-
-                if j < b_match_index {
-                    transpositions += 1.0;
-                }
-                b_match_index = j;
-
+            if min_bound <= j && j <= max_bound && a_elem == b_elem && !b_flags[j] {
+                a_flags[i] = true;
+                b_flags[j] = true;
+                matches += 1;
                 break;
             }
         }
     }
 
-    if matches == 0.0 {
+    let mut transpositions = 0;
+    if matches != 0 {
+        let mut b_iter = b_flags.into_iter().zip(b);
+        for (a_flag, ch1) in a_flags.into_iter().zip(a) {
+            if a_flag {
+                let (_, ch2) = b_iter
+                    .find(|(b_flag, _ch2)| *b_flag)
+                    .expect("there has to be a b_flag for each a_flag");
+
+                if ch1 != ch2 {
+                    transpositions += 1;
+                }
+            }
+        }
+    }
+    transpositions /= 2;
+
+    if matches == 0 {
         0.0
     } else {
         (1.0 / 3.0)
-            * ((matches / a_len as f64)
-                + (matches / b_len as f64)
-                + ((matches - transpositions) / matches))
+            * ((matches as f64 / a_len as f64)
+                + (matches as f64 / b_len as f64)
+                + ((matches - transpositions) as f64 / matches as f64))
     }
 }
 
@@ -605,6 +615,7 @@ mod tests {
     #[test]
     fn jaro_diff_with_transposition() {
         assert!((0.944 - jaro("martha", "marhta")).abs() < 0.001);
+        assert!((0. - jaro("a jke", "jane a k")).abs() < 0.001);
     }
 
     #[test]
