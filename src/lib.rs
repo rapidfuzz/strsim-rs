@@ -83,15 +83,12 @@ where
         return 1.0;
     } else if a_len == 0 || b_len == 0 {
         return 0.0;
-    } else if a_len == 1 && b_len == 1 {
-        return if a.into_iter().eq(b.into_iter()) {
-            1.0
-        } else {
-            0.0
-        };
     }
 
-    let search_range = (max(a_len, b_len) / 2) - 1;
+    let mut search_range = max(a_len, b_len) / 2;
+    if search_range != 0 {
+        search_range -= 1;
+    }
 
     let mut a_flags = vec![false; a_len];
     let mut b_flags = vec![false; b_len];
@@ -107,8 +104,8 @@ where
 
         let max_bound = min(b_len, i + search_range + 1);
 
-        for (j, b_elem) in b.into_iter().enumerate().take(max_bound).skip(min_bound) {
-            if a_elem == b_elem && !b_flags[j] {
+        for (j, b_elem) in b.into_iter().enumerate().take(max_bound) {
+            if min_bound <= j && a_elem == b_elem && !b_flags[j] {
                 a_flags[i] = true;
                 b_flags[j] = true;
                 matches += 1;
@@ -122,12 +119,17 @@ where
         let mut b_iter = b_flags.into_iter().zip(b);
         for (a_flag, ch1) in a_flags.into_iter().zip(a) {
             if a_flag {
-                let (_, ch2) = b_iter
-                    .find(|(b_flag, _ch2)| *b_flag)
-                    .expect("there has to be a b_flag for each a_flag");
+                loop {
+                    if let Some((b_flag, ch2)) = b_iter.next() {
+                        if !b_flag {
+                            continue;
+                        }
 
-                if ch1 != ch2 {
-                    transpositions += 1;
+                        if ch1 != ch2 {
+                            transpositions += 1;
+                        }
+                        break;
+                    }
                 }
             }
         }
@@ -137,10 +139,10 @@ where
     if matches == 0 {
         0.0
     } else {
-        (1.0 / 3.0)
-            * ((matches as f64 / a_len as f64)
-                + (matches as f64 / b_len as f64)
-                + ((matches - transpositions) as f64 / matches as f64))
+        ((matches as f64 / a_len as f64)
+            + (matches as f64 / b_len as f64)
+            + ((matches - transpositions) as f64 / matches as f64))
+            / 3.0
     }
 }
 
