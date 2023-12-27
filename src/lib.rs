@@ -610,7 +610,7 @@ mod tests {
     #[test]
     fn jaro_diff_with_transposition() {
         assert!((0.944 - jaro("martha", "marhta")).abs() < 0.001);
-        assert!((0. - jaro("a jke", "jane a k")).abs() < 0.001);
+        assert!((0.6 - jaro("a jke", "jane a k")).abs() < 0.001);
     }
 
     #[test]
@@ -668,6 +668,7 @@ mod tests {
     #[test]
     fn jaro_winkler_diff_with_transposition() {
         assert!((0.961 - jaro_winkler("martha", "marhta")).abs() < 0.001);
+        assert!((0.6 - jaro_winkler("a jke", "jane a k")).abs() < 0.001);
     }
 
     #[test]
