@@ -93,10 +93,7 @@ where
 
     let search_range = (max(a_len, b_len) / 2) - 1;
 
-    let mut b_consumed = Vec::with_capacity(b_len);
-    for _ in 0..b_len {
-        b_consumed.push(false);
-    }
+    let mut b_consumed = vec![false; b_len];
     let mut matches = 0.0;
 
     let mut transpositions = 0.0;
@@ -294,18 +291,12 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
         return a_len;
     }
 
-    let mut prev_two_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
-    let mut prev_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
-    let mut curr_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
+    let mut prev_two_distances: Vec<usize> = (0..=b_len).collect();
+    let mut prev_distances: Vec<usize> = (0..=b_len).collect();
+    let mut curr_distances: Vec<usize> = vec![0; b_len + 1];
 
     let mut prev_a_char = char::MAX;
     let mut prev_b_char = char::MAX;
-
-    for i in 0..(b_len + 1) {
-        prev_two_distances.push(i);
-        prev_distances.push(i);
-        curr_distances.push(0);
-    }
 
     for (i, a_char) in a.chars().enumerate() {
         curr_distances[0] = i + 1;
