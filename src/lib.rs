@@ -77,8 +77,6 @@ where
     let a_len = a.into_iter().count();
     let b_len = b.into_iter().count();
 
-    // The check for lengths of one here is to prevent integer overflow when
-    // calculating the search range.
     if a_len == 0 && b_len == 0 {
         return 1.0;
     } else if a_len == 0 || b_len == 0 {
