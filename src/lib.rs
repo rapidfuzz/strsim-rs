@@ -92,7 +92,7 @@ where
     let mut flags_memory = vec![false; a_len + b_len];
     let (a_flags, b_flags) = flags_memory.split_at_mut(a_len);
 
-    let mut matches = 0;
+    let mut matches = 0_usize;
 
     for (i, a_elem) in a.into_iter().enumerate() {
         // prevent integer wrapping
@@ -114,7 +114,7 @@ where
         }
     }
 
-    let mut transpositions = 0;
+    let mut transpositions = 0_usize;
     if matches != 0 {
         let mut b_iter = b_flags.into_iter().zip(b);
         for (a_flag, ch1) in a_flags.into_iter().zip(a) {
