@@ -77,68 +77,72 @@ where
     let a_len = a.into_iter().count();
     let b_len = b.into_iter().count();
 
-    // The check for lengths of one here is to prevent integer overflow when
-    // calculating the search range.
     if a_len == 0 && b_len == 0 {
         return 1.0;
     } else if a_len == 0 || b_len == 0 {
         return 0.0;
-    } else if a_len == 1 && b_len == 1 {
-        return if a.into_iter().eq(b.into_iter()) {
-            1.0
-        } else {
-            0.0
-        };
     }
 
-    let search_range = (max(a_len, b_len) / 2) - 1;
-
-    let mut b_consumed = Vec::with_capacity(b_len);
-    for _ in 0..b_len {
-        b_consumed.push(false);
+    let mut search_range = max(a_len, b_len) / 2;
+    if search_range != 0 {
+        search_range -= 1;
     }
-    let mut matches = 0.0;
 
-    let mut transpositions = 0.0;
-    let mut b_match_index = 0;
+    // combine memory allocations to reduce runtime
+    let mut flags_memory = vec![false; a_len + b_len];
+    let (a_flags, b_flags) = flags_memory.split_at_mut(a_len);
+
+    let mut matches = 0_usize;
 
     for (i, a_elem) in a.into_iter().enumerate() {
-        let min_bound =
-            // prevent integer wrapping
-            if i > search_range {
-                max(0, i - search_range)
-            } else {
-                0
-            };
+        // prevent integer wrapping
+        let min_bound = if i > search_range {
+            i - search_range
+        } else {
+            0
+        };
 
-        let max_bound = min(b_len - 1, i + search_range);
+        let max_bound = min(b_len, i + search_range + 1);
 
-        if min_bound > max_bound {
-            continue;
-        }
-
-        for (j, b_elem) in b.into_iter().enumerate() {
-            if min_bound <= j && j <= max_bound && a_elem == b_elem && !b_consumed[j] {
-                b_consumed[j] = true;
-                matches += 1.0;
-
-                if j < b_match_index {
-                    transpositions += 1.0;
-                }
-                b_match_index = j;
-
+        for (j, b_elem) in b.into_iter().enumerate().take(max_bound) {
+            if min_bound <= j && a_elem == b_elem && !b_flags[j] {
+                a_flags[i] = true;
+                b_flags[j] = true;
+                matches += 1;
                 break;
             }
         }
     }
 
-    if matches == 0.0 {
+    let mut transpositions = 0_usize;
+    if matches != 0 {
+        let mut b_iter = b_flags.into_iter().zip(b);
+        for (a_flag, ch1) in a_flags.into_iter().zip(a) {
+            if *a_flag {
+                loop {
+                    if let Some((b_flag, ch2)) = b_iter.next() {
+                        if !*b_flag {
+                            continue;
+                        }
+
+                        if ch1 != ch2 {
+                            transpositions += 1;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    transpositions /= 2;
+
+    if matches == 0 {
         0.0
     } else {
-        (1.0 / 3.0)
-            * ((matches / a_len as f64)
-                + (matches / b_len as f64)
-                + ((matches - transpositions) / matches))
+        ((matches as f64 / a_len as f64)
+            + (matches as f64 / b_len as f64)
+            + ((matches - transpositions) as f64 / matches as f64))
+            / 3.0
     }
 }
 
@@ -294,18 +298,12 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
         return a_len;
     }
 
-    let mut prev_two_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
-    let mut prev_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
-    let mut curr_distances: Vec<usize> = Vec::with_capacity(b_len + 1);
+    let mut prev_two_distances: Vec<usize> = (0..=b_len).collect();
+    let mut prev_distances: Vec<usize> = (0..=b_len).collect();
+    let mut curr_distances: Vec<usize> = vec![0; b_len + 1];
 
     let mut prev_a_char = char::MAX;
     let mut prev_b_char = char::MAX;
-
-    for i in 0..(b_len + 1) {
-        prev_two_distances.push(i);
-        prev_distances.push(i);
-        curr_distances.push(0);
-    }
 
     for (i, a_char) in a.chars().enumerate() {
         curr_distances[0] = i + 1;
@@ -614,6 +612,7 @@ mod tests {
     #[test]
     fn jaro_diff_with_transposition() {
         assert!((0.944 - jaro("martha", "marhta")).abs() < 0.001);
+        assert!((0.6 - jaro("a jke", "jane a k")).abs() < 0.001);
     }
 
     #[test]
@@ -671,6 +670,7 @@ mod tests {
     #[test]
     fn jaro_winkler_diff_with_transposition() {
         assert!((0.961 - jaro_winkler("martha", "marhta")).abs() < 0.001);
+        assert!((0.6 - jaro_winkler("a jke", "jane a k")).abs() < 0.001);
     }
 
     #[test]

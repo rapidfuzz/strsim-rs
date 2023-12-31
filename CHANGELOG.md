@@ -4,6 +4,10 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org).
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix transposition counting in Jaro and Jaro-Winkler.
+
 ## [0.10.0] - (2020-01-31)
 
 ### Added
