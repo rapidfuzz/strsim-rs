@@ -194,16 +194,20 @@ where
     &'b Iter2: IntoIterator<Item = Elem2>,
     Elem1: PartialEq<Elem2>,
 {
-    let jaro_distance = generic_jaro(a, b);
+    let sim = generic_jaro(a, b);
 
-    let prefix_length = a
-        .into_iter()
-        .take(4)
-        .zip(b)
-        .take_while(|(a_elem, b_elem)| a_elem == b_elem)
-        .count();
+    if sim > 0.7 {
+        let prefix_length = a
+            .into_iter()
+            .take(4)
+            .zip(b)
+            .take_while(|(a_elem, b_elem)| a_elem == b_elem)
+            .count();
 
-    return jaro_distance + 0.1 * prefix_length as f64 * (1.0 - jaro_distance);
+        sim + 0.1 * prefix_length as f64 * (1.0 - sim)
+    } else {
+        sim
+    }
 }
 
 /// Like Jaro but gives a boost to strings that have a common prefix.
@@ -953,7 +957,7 @@ mod tests {
     #[test]
     fn jaro_winkler_names() {
         assert_delta!(
-            0.562,
+            0.452,
             jaro_winkler("Friedrich Nietzsche", "Fran-Paul Sartre"),
             0.001
         );
@@ -977,7 +981,7 @@ mod tests {
     #[test]
     fn jaro_winkler_very_long_prefix() {
         assert_delta!(
-            0.985,
+            0.98519,
             jaro_winkler("thequickbrownfoxjumpedoverx", "thequickbrownfoxjumpedovery")
         );
     }
