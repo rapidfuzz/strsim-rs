@@ -17,6 +17,8 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org).
   - reduce runtime in our own benchmark by more than `70%`
   - reduce binary size by more than `25%`
 
+- only boost similarity in Jaro-Winkler once the Jaro similarity exceeds 0.7
+
 ### Fixed
 
 - Fix transposition counting in Jaro and Jaro-Winkler.
