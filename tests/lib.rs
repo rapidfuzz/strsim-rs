@@ -67,5 +67,5 @@ fn jaro_works() {
 
 #[test]
 fn jaro_winkler_works() {
-    assert_delta!(0.911, jaro_winkler("cheeseburger", "cheese fries"), 0.001);
+    assert_delta!(0.866, jaro_winkler("cheeseburger", "cheese fries"), 0.001);
 }
