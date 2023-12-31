@@ -225,20 +225,16 @@ where
 {
     let b_len = b.into_iter().count();
 
-    if a.into_iter().next().is_none() {
-        return b_len;
-    }
-
     let mut cache: Vec<usize> = (1..b_len + 1).collect();
 
-    let mut result = 0;
+    let mut result = b_len;
 
     for (i, a_elem) in a.into_iter().enumerate() {
         result = i + 1;
         let mut distance_b = i;
 
         for (j, b_elem) in b.into_iter().enumerate() {
-            let cost = if a_elem == b_elem { 0usize } else { 1usize };
+            let cost = usize::from(a_elem != b_elem);
             let distance_a = distance_b + cost;
             distance_b = cache[j];
             result = min(result + 1, min(distance_a, distance_b + 1));

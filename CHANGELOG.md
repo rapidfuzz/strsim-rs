@@ -10,6 +10,8 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org).
   - reduce runtime
   - reduce binary size by more than `25%`
 
+- reduce binary size of Levenshtein distance
+
 ### Fixed
 
 - Fix transposition counting in Jaro and Jaro-Winkler.
