@@ -10,7 +10,7 @@
   - [Levenshtein] - distance & normalized
   - [Optimal string alignment]
   - [Damerau-Levenshtein] - distance & normalized
-  - [Jaro and Jaro-Winkler] - this implementation of Jaro-Winkler does not limit the common prefix length
+  - [Jaro and Jaro-Winkler]
   - [Sørensen-Dice]
 
 The normalized versions return values between `0.0` and `1.0`, where `1.0` means

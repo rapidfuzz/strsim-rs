@@ -196,21 +196,14 @@ where
 {
     let jaro_distance = generic_jaro(a, b);
 
-    // Don't limit the length of the common prefix
     let prefix_length = a
         .into_iter()
+        .take(4)
         .zip(b)
         .take_while(|(a_elem, b_elem)| a_elem == b_elem)
         .count();
 
-    let jaro_winkler_distance =
-        jaro_distance + (0.1 * prefix_length as f64 * (1.0 - jaro_distance));
-
-    if jaro_winkler_distance <= 1.0 {
-        jaro_winkler_distance
-    } else {
-        1.0
-    }
+    return jaro_distance + 0.1 * prefix_length as f64 * (1.0 - jaro_distance);
 }
 
 /// Like Jaro but gives a boost to strings that have a common prefix.
@@ -218,7 +211,7 @@ where
 /// ```
 /// use strsim::jaro_winkler;
 ///
-/// assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() <
+/// assert!((0.866 - jaro_winkler("cheeseburger", "cheese fries")).abs() <
 ///         0.001);
 /// ```
 pub fn jaro_winkler(a: &str, b: &str) -> f64 {
@@ -968,7 +961,7 @@ mod tests {
 
     #[test]
     fn jaro_winkler_long_prefix() {
-        assert_delta!(0.911, jaro_winkler("cheeseburger", "cheese fries"), 0.001);
+        assert_delta!(0.866, jaro_winkler("cheeseburger", "cheese fries"), 0.001);
     }
 
     #[test]
@@ -984,7 +977,7 @@ mod tests {
     #[test]
     fn jaro_winkler_very_long_prefix() {
         assert_delta!(
-            1.0,
+            0.985,
             jaro_winkler("thequickbrownfoxjumpedoverx", "thequickbrownfoxjumpedovery")
         );
     }

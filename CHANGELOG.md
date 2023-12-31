@@ -20,6 +20,7 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org).
 ### Fixed
 
 - Fix transposition counting in Jaro and Jaro-Winkler.
+- Limit common prefix in Jaro-Winkler to 4 characters
 
 ## [0.10.0] - (2020-01-31)
 
