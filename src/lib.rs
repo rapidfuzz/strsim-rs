@@ -10,6 +10,7 @@ use std::fmt::{self, Display, Formatter};
 use std::hash::Hash;
 use std::mem;
 use std::str::Chars;
+use std::convert::TryFrom;
 
 #[derive(Debug, PartialEq)]
 pub enum StrSimError {
@@ -400,6 +401,259 @@ where
     distances[flat_index(a_len + 1, b_len + 1, width)]
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+struct RowId {
+    val: isize,
+}
+
+impl Default for RowId {
+    fn default() -> Self {
+        Self { val: -1 }
+    }
+}
+
+#[derive(Default, Clone)]
+struct GrowingHashmapMapElemChar<ValueType> {
+    key: u32,
+    value: ValueType,
+}
+
+/// specialized hashmap to store user provided types
+/// this implementation relies on a couple of base assumptions in order to simplify the implementation
+/// - the hashmap does not have an upper limit of included items
+/// - the default value for the `ValueType` can be used as a dummy value to indicate an empty cell
+/// - elements can't be removed
+/// - only allocates memory on first write access.
+///   This improves performance for hashmaps that are never written to
+pub struct GrowingHashmapChar<ValueType> {
+    used: i32,
+    fill: i32,
+    mask: i32,
+    map: Option<Vec<GrowingHashmapMapElemChar<ValueType>>>,
+}
+
+impl<ValueType> Default for GrowingHashmapChar<ValueType>
+where
+    ValueType: Default + Clone + Eq,
+{
+    fn default() -> Self {
+        Self {
+            used: 0,
+            fill: 0,
+            mask: -1,
+            map: None,
+        }
+    }
+}
+
+impl<ValueType> GrowingHashmapChar<ValueType>
+where
+    ValueType: Default + Clone + Eq + Copy,
+{
+    pub fn get(&self, key: u32) -> ValueType {
+        self.map
+            .as_ref()
+            .map_or_else(|| Default::default(), |map| map[self.lookup(key)].value)
+    }
+
+    pub fn get_mut(&mut self, key: u32) -> &mut ValueType {
+        if self.map.is_none() {
+            self.allocate();
+        }
+
+        let mut i = self.lookup(key);
+        if self
+            .map
+            .as_ref()
+            .expect("map should have been created above")[i]
+            .value
+            == Default::default()
+        {
+            self.fill += 1;
+            // resize when 2/3 full
+            if self.fill * 3 >= (self.mask + 1) * 2 {
+                self.grow((self.used + 1) * 2);
+                i = self.lookup(key);
+            }
+
+            self.used += 1;
+        }
+
+        let elem = &mut self
+            .map
+            .as_mut()
+            .expect("map should have been created above")[i];
+        elem.key = key;
+        &mut elem.value
+    }
+
+    fn allocate(&mut self) {
+        self.mask = 8 - 1;
+        self.map = Some(vec![GrowingHashmapMapElemChar::default(); 8]);
+    }
+
+    /// lookup key inside the hashmap using a similar collision resolution
+    /// strategy to `CPython` and `Ruby`
+    fn lookup(&self, key: u32) -> usize {
+        let hash = key;
+        let mut i = hash as usize & self.mask as usize;
+
+        let map = self
+            .map
+            .as_ref()
+            .expect("callers have to ensure map is allocated");
+
+        if map[i].value == Default::default() || map[i].key == key {
+            return i;
+        }
+
+        let mut perturb = key;
+        loop {
+            i = (i * 5 + perturb as usize + 1) & self.mask as usize;
+
+            if map[i].value == Default::default() || map[i].key == key {
+                return i;
+            }
+
+            perturb >>= 5;
+        }
+    }
+
+    fn grow(&mut self, min_used: i32) {
+        let mut new_size = self.mask + 1;
+        while new_size <= min_used {
+            new_size <<= 1;
+        }
+
+        self.fill = self.used;
+        self.mask = new_size - 1;
+
+        let old_map = std::mem::replace(
+            self.map
+                .as_mut()
+                .expect("callers have to ensure map is allocated"),
+            vec![GrowingHashmapMapElemChar::<ValueType>::default(); new_size as usize],
+        );
+
+        for elem in old_map {
+            if elem.value != Default::default() {
+                let j = self.lookup(elem.key);
+                let new_elem = &mut self.map.as_mut().expect("map created above")[j];
+                new_elem.key = elem.key;
+                new_elem.value = elem.value;
+                self.used -= 1;
+                if self.used == 0 {
+                    break;
+                }
+            }
+        }
+
+        self.used = self.fill;
+    }
+}
+
+pub struct HybridGrowingHashmapChar<ValueType> {
+    pub map: GrowingHashmapChar<ValueType>,
+    pub extended_ascii: [ValueType; 256],
+}
+
+impl<ValueType> HybridGrowingHashmapChar<ValueType>
+where
+    ValueType: Default + Clone + Copy + Eq,
+{
+    pub fn new() -> Self {
+        HybridGrowingHashmapChar {
+            map: GrowingHashmapChar::default(),
+            extended_ascii: [Default::default(); 256],
+        }
+    }
+
+    pub fn get(&self, key: char) -> ValueType {
+        let value = key as u32;
+        if value <= 255 {
+            let val_u8 = u8::try_from(value).expect("we check the bounds above");
+            self.extended_ascii[usize::from(val_u8)]
+        } else {
+            self.map.get(value)
+        }
+    }
+
+    pub fn get_mut(&mut self, key: char) -> &mut ValueType {
+        let value = key as u32;
+        if value <= 255 {
+            let val_u8 = u8::try_from(value).expect("we check the bounds above");
+            &mut self.extended_ascii[usize::from(val_u8)]
+        } else {
+            self.map.get_mut(value)
+        }
+    }
+}
+
+pub fn damerau_levenshtein_impl<Iter1, Iter2>(
+    s1: Iter1,
+    len1: usize,
+    s2: Iter2,
+    len2: usize,
+) -> usize
+where
+    Iter1: Iterator<Item = char> + Clone,
+    Iter2: Iterator<Item = char> + Clone,
+{
+    // The implementations is based on the paper
+    // `Linear space string correction algorithm using the Damerau-Levenshtein distance`
+    // from Chunchun Zhao and Sartaj Sahni
+    //
+    // It has a runtime complexity of `O(N*M)` and a memory usage of `O(N+M)`.
+    let max_val = max(len1, len2) as isize + 1;
+
+    let mut last_row_id = HybridGrowingHashmapChar::<RowId>::new();
+
+    let size = len2 + 2;
+    let mut fr = vec![max_val; size];
+    let mut r1 = vec![max_val; size];
+    let mut r: Vec<isize> = (max_val..max_val + 1)
+        .chain(0..(size - 1) as isize)
+        .collect();
+
+    for (i, ch1) in s1.enumerate().map(|(i, ch1)| (i + 1, ch1)) {
+        mem::swap(&mut r, &mut r1);
+        let mut last_col_id: isize = -1;
+        let mut last_i2l1 = r[1];
+        r[1] = i as isize;
+        let mut t = max_val;
+
+        for (j, ch2) in s2.clone().enumerate().map(|(j, ch2)| (j + 1, ch2)) {
+            let diag = r1[j] + isize::from(ch1 != ch2);
+            let left = r[j] + 1;
+            let up = r1[j + 1] + 1;
+            let mut temp = min(diag, min(left, up));
+
+            if ch1 == ch2 {
+                last_col_id = j as isize; // last occurence of s1_i
+                fr[j + 1] = r1[j - 1]; // save H_k-1,j-2
+                t = last_i2l1; // save H_i-2,l-1
+            } else {
+                let k = last_row_id.get(ch2).val;
+                let l = last_col_id;
+
+                if j as isize - l == 1 {
+                    let transpose = fr[j + 1] + (i as isize - k);
+                    temp = min(temp, transpose);
+                } else if i as isize - k == 1 {
+                    let transpose = t + (j as isize - l);
+                    temp = min(temp, transpose);
+                }
+            }
+
+            last_i2l1 = r[j + 1];
+            r[j + 1] = temp;
+        }
+        last_row_id.get_mut(ch1).val = i as isize;
+    }
+
+    r[len2 + 1] as usize
+}
+
 /// Like optimal string alignment, but substrings can be edited an unlimited
 /// number of times, and the triangle inequality holds.
 ///
@@ -409,8 +663,7 @@ where
 /// assert_eq!(2, damerau_levenshtein("ab", "bca"));
 /// ```
 pub fn damerau_levenshtein(a: &str, b: &str) -> usize {
-    let (x, y): (Vec<_>, Vec<_>) = (a.chars().collect(), b.chars().collect());
-    generic_damerau_levenshtein(x.as_slice(), y.as_slice())
+    damerau_levenshtein_impl(a.chars(), a.chars().count(), b.chars(), b.chars().count())
 }
 
 /// Calculates a normalized score of the Damerau–Levenshtein algorithm between
@@ -429,7 +682,11 @@ pub fn normalized_damerau_levenshtein(a: &str, b: &str) -> f64 {
     if a.is_empty() && b.is_empty() {
         return 1.0;
     }
-    1.0 - (damerau_levenshtein(a, b) as f64) / (a.chars().count().max(b.chars().count()) as f64)
+
+    let len1 = a.chars().count();
+    let len2 = b.chars().count();
+    let dist = damerau_levenshtein_impl(a.chars(), len1, b.chars(), len2);
+    1.0 - (dist as f64) / (max(len1, len2) as f64)
 }
 
 /// Returns an Iterator of char tuples.
