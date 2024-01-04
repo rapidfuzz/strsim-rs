@@ -36,4 +36,4 @@ jobs:
             toolchain: stable
             override: true
       - name: Check formatting
-        run: cargo fmt -- --check
+        run: cargo fmt --check
