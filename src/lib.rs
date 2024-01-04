@@ -1,6 +1,23 @@
 //! This library implements string similarity metrics.
 
 #![forbid(unsafe_code)]
+#![allow(
+    // these casts are sometimes needed. They restrict the length of input iterators
+    // but there isn't really any way around this except for always working with
+    // 128 bit types
+    clippy::cast_possible_wrap,
+    clippy::cast_sign_loss,
+    clippy::cast_precision_loss,
+    // not practical
+    clippy::needless_pass_by_value,
+    clippy::similar_names,
+    // noisy
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
+    clippy::must_use_candidate,
+    // todo https://github.com/dguo/strsim-rs/issues/59
+    clippy::range_plus_one
+)]
 
 use std::char;
 use std::cmp::{max, min};
@@ -23,7 +40,7 @@ impl Display for StrSimError {
             StrSimError::DifferentLengthArgs => "Differing length arguments provided",
         };
 
-        write!(fmt, "{}", text)
+        write!(fmt, "{text}")
     }
 }
 
@@ -86,9 +103,7 @@ where
     }
 
     let mut search_range = max(a_len, b_len) / 2;
-    if search_range != 0 {
-        search_range -= 1;
-    }
+    search_range = search_range.saturating_sub(1);
 
     // combine memory allocations to reduce runtime
     let mut flags_memory = vec![false; a_len + b_len];
@@ -118,8 +133,8 @@ where
 
     let mut transpositions = 0_usize;
     if matches != 0 {
-        let mut b_iter = b_flags.into_iter().zip(b);
-        for (a_flag, ch1) in a_flags.into_iter().zip(a) {
+        let mut b_iter = b_flags.iter().zip(b);
+        for (a_flag, ch1) in a_flags.iter().zip(a) {
             if *a_flag {
                 loop {
                     if let Some((b_flag, ch2)) = b_iter.next() {
@@ -184,8 +199,8 @@ where
     // Don't limit the length of the common prefix
     let prefix_length = a
         .into_iter()
-        .zip(b.into_iter())
-        .take_while(|&(ref a_elem, ref b_elem)| a_elem == b_elem)
+        .zip(b)
+        .take_while(|(a_elem, b_elem)| a_elem == b_elem)
         .count();
 
     let jaro_winkler_distance =
@@ -425,7 +440,7 @@ struct GrowingHashmapMapElemChar<ValueType> {
 /// - elements can't be removed
 /// - only allocates memory on first write access.
 ///   This improves performance for hashmaps that are never written to
-pub struct GrowingHashmapChar<ValueType> {
+struct GrowingHashmapChar<ValueType> {
     used: i32,
     fill: i32,
     mask: i32,
@@ -450,13 +465,13 @@ impl<ValueType> GrowingHashmapChar<ValueType>
 where
     ValueType: Default + Clone + Eq + Copy,
 {
-    pub fn get(&self, key: u32) -> ValueType {
+    fn get(&self, key: u32) -> ValueType {
         self.map
             .as_ref()
             .map_or_else(|| Default::default(), |map| map[self.lookup(key)].value)
     }
 
-    pub fn get_mut(&mut self, key: u32) -> &mut ValueType {
+    fn get_mut(&mut self, key: u32) -> &mut ValueType {
         if self.map.is_none() {
             self.allocate();
         }
@@ -552,23 +567,16 @@ where
     }
 }
 
-pub struct HybridGrowingHashmapChar<ValueType> {
-    pub map: GrowingHashmapChar<ValueType>,
-    pub extended_ascii: [ValueType; 256],
+struct HybridGrowingHashmapChar<ValueType> {
+    map: GrowingHashmapChar<ValueType>,
+    extended_ascii: [ValueType; 256],
 }
 
 impl<ValueType> HybridGrowingHashmapChar<ValueType>
 where
     ValueType: Default + Clone + Copy + Eq,
 {
-    pub fn new() -> Self {
-        HybridGrowingHashmapChar {
-            map: GrowingHashmapChar::default(),
-            extended_ascii: [Default::default(); 256],
-        }
-    }
-
-    pub fn get(&self, key: char) -> ValueType {
+    fn get(&self, key: char) -> ValueType {
         let value = key as u32;
         if value <= 255 {
             let val_u8 = u8::try_from(value).expect("we check the bounds above");
@@ -578,13 +586,25 @@ where
         }
     }
 
-    pub fn get_mut(&mut self, key: char) -> &mut ValueType {
+    fn get_mut(&mut self, key: char) -> &mut ValueType {
         let value = key as u32;
         if value <= 255 {
             let val_u8 = u8::try_from(value).expect("we check the bounds above");
             &mut self.extended_ascii[usize::from(val_u8)]
         } else {
             self.map.get_mut(value)
+        }
+    }
+}
+
+impl<ValueType> Default for HybridGrowingHashmapChar<ValueType>
+where
+    ValueType: Default + Clone + Copy + Eq,
+{
+    fn default() -> Self {
+        HybridGrowingHashmapChar {
+            map: GrowingHashmapChar::default(),
+            extended_ascii: [Default::default(); 256],
         }
     }
 }
@@ -601,7 +621,7 @@ where
     // It has a runtime complexity of `O(N*M)` and a memory usage of `O(N+M)`.
     let max_val = max(len1, len2) as isize + 1;
 
-    let mut last_row_id = HybridGrowingHashmapChar::<RowId>::new();
+    let mut last_row_id = HybridGrowingHashmapChar::<RowId>::default();
 
     let size = len2 + 2;
     let mut fr = vec![max_val; size];
@@ -690,7 +710,7 @@ fn bigrams(s: &str) -> impl Iterator<Item = (char, char)> + '_ {
 }
 
 /// Calculates a Sørensen-Dice similarity distance using bigrams.
-/// See http://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient.
+/// See <https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient>.
 ///
 /// ```
 /// use strsim::sorensen_dice;
@@ -722,7 +742,7 @@ pub fn sorensen_dice(a: &str, b: &str) -> f64 {
         *a_bigrams.entry(bigram).or_insert(0) += 1;
     }
 
-    let mut intersection_size = 0;
+    let mut intersection_size = 0_usize;
 
     for bigram in bigrams(&b) {
         a_bigrams.entry(bigram).and_modify(|bi| {
