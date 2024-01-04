@@ -5,12 +5,12 @@
 use std::char;
 use std::cmp::{max, min};
 use std::collections::HashMap;
+use std::convert::TryFrom;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::hash::Hash;
 use std::mem;
 use std::str::Chars;
-use std::convert::TryFrom;
 
 #[derive(Debug, PartialEq)]
 pub enum StrSimError {
@@ -589,12 +589,7 @@ where
     }
 }
 
-fn damerau_levenshtein_impl<Iter1, Iter2>(
-    s1: Iter1,
-    len1: usize,
-    s2: Iter2,
-    len2: usize,
-) -> usize
+fn damerau_levenshtein_impl<Iter1, Iter2>(s1: Iter1, len1: usize, s2: Iter2, len2: usize) -> usize
 where
     Iter1: Iterator<Item = char> + Clone,
     Iter2: Iterator<Item = char> + Clone,
