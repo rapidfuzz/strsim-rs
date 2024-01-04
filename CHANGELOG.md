@@ -4,6 +4,12 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org).
 
 ## [Unreleased]
 
+### Changed
+
+- improve OSA implementation
+  - reduce runtime
+  - reduce binary size by more than `25%`
+
 ### Fixed
 
 - Fix transposition counting in Jaro and Jaro-Winkler.
