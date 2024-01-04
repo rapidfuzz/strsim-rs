@@ -760,6 +760,21 @@ pub fn sorensen_dice(a: &str, b: &str) -> f64 {
 mod tests {
     use super::*;
 
+    macro_rules! assert_delta {
+        ($x:expr, $y:expr) => {
+            assert_delta!($x, $y, 1e-5);
+        };
+        ($x:expr, $y:expr, $d:expr) => {
+            if ($x - $y).abs() > $d {
+                panic!(
+                    "assertion failed: actual: `{}`, expected: `{}`: \
+                    actual not within < {} of expected",
+                    $x, $y, $d
+                );
+            }
+        };
+    }
+
     #[test]
     fn bigrams_iterator() {
         let mut bi = bigrams("abcde");
@@ -835,13 +850,13 @@ mod tests {
 
     #[test]
     fn jaro_multibyte() {
-        assert!((0.818 - jaro("testabctest", "testöঙ香test")) < 0.001);
-        assert!((0.818 - jaro("testöঙ香test", "testabctest")) < 0.001);
+        assert_delta!(0.818, jaro("testabctest", "testöঙ香test"), 0.001);
+        assert_delta!(0.818, jaro("testöঙ香test", "testabctest"), 0.001);
     }
 
     #[test]
     fn jaro_diff_short() {
-        assert!((0.767 - jaro("dixon", "dicksonx")).abs() < 0.001);
+        assert_delta!(0.767, jaro("dixon", "dicksonx"), 0.001);
     }
 
     #[test]
@@ -861,28 +876,32 @@ mod tests {
 
     #[test]
     fn jaro_diff_one_and_two() {
-        assert!((0.83 - jaro("a", "ab")).abs() < 0.01);
+        assert_delta!(0.83, jaro("a", "ab"), 0.01);
     }
 
     #[test]
     fn jaro_diff_two_and_one() {
-        assert!((0.83 - jaro("ab", "a")).abs() < 0.01);
+        assert_delta!(0.83, jaro("ab", "a"), 0.01);
     }
 
     #[test]
     fn jaro_diff_no_transposition() {
-        assert!((0.822 - jaro("dwayne", "duane")).abs() < 0.001);
+        assert_delta!(0.822, jaro("dwayne", "duane"), 0.001);
     }
 
     #[test]
     fn jaro_diff_with_transposition() {
-        assert!((0.944 - jaro("martha", "marhta")).abs() < 0.001);
-        assert!((0.6 - jaro("a jke", "jane a k")).abs() < 0.001);
+        assert_delta!(0.944, jaro("martha", "marhta"), 0.001);
+        assert_delta!(0.6, jaro("a jke", "jane a k"), 0.001);
     }
 
     #[test]
     fn jaro_names() {
-        assert!((0.392 - jaro("Friedrich Nietzsche", "Jean-Paul Sartre")).abs() < 0.001);
+        assert_delta!(
+            0.392,
+            jaro("Friedrich Nietzsche", "Jean-Paul Sartre"),
+            0.001
+        );
     }
 
     #[test]
@@ -907,14 +926,14 @@ mod tests {
 
     #[test]
     fn jaro_winkler_multibyte() {
-        assert!((0.89 - jaro_winkler("testabctest", "testöঙ香test")).abs() < 0.001);
-        assert!((0.89 - jaro_winkler("testöঙ香test", "testabctest")).abs() < 0.001);
+        assert_delta!(0.89, jaro_winkler("testabctest", "testöঙ香test"), 0.001);
+        assert_delta!(0.89, jaro_winkler("testöঙ香test", "testabctest"), 0.001);
     }
 
     #[test]
     fn jaro_winkler_diff_short() {
-        assert!((0.813 - jaro_winkler("dixon", "dicksonx")).abs() < 0.001);
-        assert!((0.813 - jaro_winkler("dicksonx", "dixon")).abs() < 0.001);
+        assert_delta!(0.813, jaro_winkler("dixon", "dicksonx"), 0.001);
+        assert_delta!(0.813, jaro_winkler("dicksonx", "dixon"), 0.001);
     }
 
     #[test]
@@ -929,41 +948,44 @@ mod tests {
 
     #[test]
     fn jaro_winkler_diff_no_transposition() {
-        assert!((0.840 - jaro_winkler("dwayne", "duane")).abs() < 0.001);
+        assert_delta!(0.84, jaro_winkler("dwayne", "duane"), 0.001);
     }
 
     #[test]
     fn jaro_winkler_diff_with_transposition() {
-        assert!((0.961 - jaro_winkler("martha", "marhta")).abs() < 0.001);
-        assert!((0.6 - jaro_winkler("a jke", "jane a k")).abs() < 0.001);
+        assert_delta!(0.961, jaro_winkler("martha", "marhta"), 0.001);
+        assert_delta!(0.6, jaro_winkler("a jke", "jane a k"), 0.001);
     }
 
     #[test]
     fn jaro_winkler_names() {
-        assert!((0.562 - jaro_winkler("Friedrich Nietzsche", "Fran-Paul Sartre")).abs() < 0.001);
+        assert_delta!(
+            0.562,
+            jaro_winkler("Friedrich Nietzsche", "Fran-Paul Sartre"),
+            0.001
+        );
     }
 
     #[test]
     fn jaro_winkler_long_prefix() {
-        assert!((0.911 - jaro_winkler("cheeseburger", "cheese fries")).abs() < 0.001);
+        assert_delta!(0.911, jaro_winkler("cheeseburger", "cheese fries"), 0.001);
     }
 
     #[test]
     fn jaro_winkler_more_names() {
-        assert!((0.868 - jaro_winkler("Thorkel", "Thorgier")).abs() < 0.001);
+        assert_delta!(0.868, jaro_winkler("Thorkel", "Thorgier"), 0.001);
     }
 
     #[test]
     fn jaro_winkler_length_of_one() {
-        assert!((0.738 - jaro_winkler("Dinsdale", "D")).abs() < 0.001);
+        assert_delta!(0.738, jaro_winkler("Dinsdale", "D"), 0.001);
     }
 
     #[test]
     fn jaro_winkler_very_long_prefix() {
-        assert!(
-            (1.0 - jaro_winkler("thequickbrownfoxjumpedoverx", "thequickbrownfoxjumpedovery"))
-                .abs()
-                < 0.001
+        assert_delta!(
+            1.0,
+            jaro_winkler("thequickbrownfoxjumpedoverx", "thequickbrownfoxjumpedovery")
         );
     }
 
@@ -1012,27 +1034,27 @@ mod tests {
 
     #[test]
     fn normalized_levenshtein_diff_short() {
-        assert!((normalized_levenshtein("kitten", "sitting") - 0.57142).abs() < 0.00001);
+        assert_delta!(0.57142, normalized_levenshtein("kitten", "sitting"));
     }
 
     #[test]
     fn normalized_levenshtein_for_empty_strings() {
-        assert!((normalized_levenshtein("", "") - 1.0).abs() < 0.00001);
+        assert_delta!(1.0, normalized_levenshtein("", ""));
     }
 
     #[test]
     fn normalized_levenshtein_first_empty() {
-        assert!(normalized_levenshtein("", "second").abs() < 0.00001);
+        assert_delta!(0.0, normalized_levenshtein("", "second"));
     }
 
     #[test]
     fn normalized_levenshtein_second_empty() {
-        assert!(normalized_levenshtein("first", "").abs() < 0.00001);
+        assert_delta!(0.0, normalized_levenshtein("first", ""));
     }
 
     #[test]
     fn normalized_levenshtein_identical_strings() {
-        assert!((normalized_levenshtein("identical", "identical") - 1.0).abs() < 0.00001);
+        assert_delta!(1.0, normalized_levenshtein("identical", "identical"));
     }
 
     #[test]
@@ -1203,29 +1225,33 @@ mod tests {
 
     #[test]
     fn normalized_damerau_levenshtein_diff_short() {
-        assert!(
-            (normalized_damerau_levenshtein("levenshtein", "löwenbräu") - 0.27272).abs() < 0.00001
+        assert_delta!(
+            0.27272,
+            normalized_damerau_levenshtein("levenshtein", "löwenbräu")
         );
     }
 
     #[test]
     fn normalized_damerau_levenshtein_for_empty_strings() {
-        assert!((normalized_damerau_levenshtein("", "") - 1.0).abs() < 0.00001);
+        assert_delta!(1.0, normalized_damerau_levenshtein("", ""));
     }
 
     #[test]
     fn normalized_damerau_levenshtein_first_empty() {
-        assert!(normalized_damerau_levenshtein("", "flower").abs() < 0.00001);
+        assert_delta!(0.0, normalized_damerau_levenshtein("", "flower"));
     }
 
     #[test]
     fn normalized_damerau_levenshtein_second_empty() {
-        assert!(normalized_damerau_levenshtein("tree", "").abs() < 0.00001);
+        assert_delta!(0.0, normalized_damerau_levenshtein("tree", ""));
     }
 
     #[test]
     fn normalized_damerau_levenshtein_identical_strings() {
-        assert!((normalized_damerau_levenshtein("sunglasses", "sunglasses") - 1.0).abs() < 0.00001);
+        assert_delta!(
+            1.0,
+            normalized_damerau_levenshtein("sunglasses", "sunglasses")
+        );
     }
 
     #[test]
@@ -1233,51 +1259,51 @@ mod tests {
         // test cases taken from
         // https://github.com/aceakash/string-similarity/blob/f83ba3cd7bae874c20c429774e911ae8cff8bced/src/spec/index.spec.js#L11
 
-        assert_eq!(1.0, sorensen_dice("a", "a"));
-        assert_eq!(0.0, sorensen_dice("a", "b"));
-        assert_eq!(1.0, sorensen_dice("", ""));
-        assert_eq!(0.0, sorensen_dice("a", ""));
-        assert_eq!(0.0, sorensen_dice("", "a"));
-        assert_eq!(1.0, sorensen_dice("apple event", "apple    event"));
-        assert_eq!(0.9090909090909091, sorensen_dice("iphone", "iphone x"));
-        assert_eq!(0.0, sorensen_dice("french", "quebec"));
-        assert_eq!(1.0, sorensen_dice("france", "france"));
-        assert_eq!(0.2, sorensen_dice("fRaNce", "france"));
-        assert_eq!(0.8, sorensen_dice("healed", "sealed"));
-        assert_eq!(
-            0.7878787878787878,
+        assert_delta!(1.0, sorensen_dice("a", "a"));
+        assert_delta!(0.0, sorensen_dice("a", "b"));
+        assert_delta!(1.0, sorensen_dice("", ""));
+        assert_delta!(0.0, sorensen_dice("a", ""));
+        assert_delta!(0.0, sorensen_dice("", "a"));
+        assert_delta!(1.0, sorensen_dice("apple event", "apple    event"));
+        assert_delta!(0.90909, sorensen_dice("iphone", "iphone x"));
+        assert_delta!(0.0, sorensen_dice("french", "quebec"));
+        assert_delta!(1.0, sorensen_dice("france", "france"));
+        assert_delta!(0.2, sorensen_dice("fRaNce", "france"));
+        assert_delta!(0.8, sorensen_dice("healed", "sealed"));
+        assert_delta!(
+            0.78788,
             sorensen_dice("web applications", "applications of the web")
         );
-        assert_eq!(
+        assert_delta!(
             0.92,
             sorensen_dice(
                 "this will have a typo somewhere",
                 "this will huve a typo somewhere"
             )
         );
-        assert_eq!(
-            0.6060606060606061,
+        assert_delta!(
+            0.60606,
             sorensen_dice(
                 "Olive-green table for sale, in extremely good condition.",
                 "For sale: table in very good  condition, olive green in colour."
             )
         );
-        assert_eq!(
-            0.2558139534883721,
+        assert_delta!(
+            0.25581,
             sorensen_dice(
                 "Olive-green table for sale, in extremely good condition.",
                 "For sale: green Subaru Impreza, 210,000 miles"
             )
         );
-        assert_eq!(
-            0.1411764705882353,
+        assert_delta!(
+            0.14118,
             sorensen_dice(
                 "Olive-green table for sale, in extremely good condition.",
                 "Wanted: mountain bike with at least 21 gears."
             )
         );
-        assert_eq!(
-            0.7741935483870968,
+        assert_delta!(
+            0.77419,
             sorensen_dice("this has one extra word", "this has one word")
         );
     }
