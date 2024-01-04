@@ -45,7 +45,7 @@ where
         match (ita.next(), itb.next()) {
             (Some(x), Some(y)) => {
                 if x != y {
-                    count += 1
+                    count += 1;
                 }
             }
             (None, None) => return Ok(count),
