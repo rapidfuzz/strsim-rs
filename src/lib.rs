@@ -727,7 +727,7 @@ pub fn sorensen_dice(a: &str, b: &str) -> f64 {
     for bigram in bigrams(&b) {
         a_bigrams.entry(bigram).and_modify(|bi| {
             if *bi > 0 {
-                *bi   -= 1;
+                *bi -= 1;
                 intersection_size += 1;
             }
         });
