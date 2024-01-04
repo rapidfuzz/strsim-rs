@@ -589,7 +589,7 @@ where
     }
 }
 
-pub fn damerau_levenshtein_impl<Iter1, Iter2>(
+fn damerau_levenshtein_impl<Iter1, Iter2>(
     s1: Iter1,
     len1: usize,
     s2: Iter2,
