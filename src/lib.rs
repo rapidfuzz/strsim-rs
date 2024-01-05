@@ -15,7 +15,7 @@
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
     clippy::must_use_candidate,
-    // todo https://github.com/dguo/strsim-rs/issues/59
+    // todo https://github.com/rapidfuzz/strsim-rs/issues/59
     clippy::range_plus_one
 )]
 
