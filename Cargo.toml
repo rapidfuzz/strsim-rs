@@ -1,7 +1,7 @@
 [package]
 name = "strsim"
 version = "0.10.0"
-authors = ["Danny Guo <danny@dannyguo.com>"]
+authors = ["Danny Guo <danny@dannyguo.com>", "maxbachmann <oss@maxbachmann.de>"]
 description = """
 Implementations of string similarity metrics. Includes Hamming, Levenshtein,
 OSA, Damerau-Levenshtein, Jaro, Jaro-Winkler, and Sørensen-Dice.
@@ -13,3 +13,4 @@ homepage = "https://github.com/rapidfuzz/strsim-rs"
 repository = "https://github.com/rapidfuzz/strsim-rs"
 documentation = "https://docs.rs/strsim/"
 exclude = ["/.github", "/dev"]
+categories = ["text-processing"]
