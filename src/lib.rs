@@ -704,11 +704,6 @@ pub fn normalized_damerau_levenshtein(a: &str, b: &str) -> f64 {
     1.0 - (dist as f64) / (max(len1, len2) as f64)
 }
 
-/// Returns an Iterator of char tuples.
-fn bigrams(s: &str) -> impl Iterator<Item = (char, char)> + '_ {
-    s.chars().zip(s.chars().skip(1))
-}
-
 /// Calculates a Sørensen-Dice similarity distance using bigrams.
 /// See <https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient>.
 ///
@@ -725,51 +720,47 @@ pub fn sorensen_dice(a: &str, b: &str) -> f64 {
     // implementation guided by
     // https://github.com/aceakash/string-similarity/blob/f83ba3cd7bae874c20c429774e911ae8cff8bced/src/index.js#L6
 
-    let a: String = a.chars().filter(|&x| !char::is_whitespace(x)).collect();
-    let b: String = b.chars().filter(|&x| !char::is_whitespace(x)).collect();
-
-    if a == b {
-        return 1.0;
-    }
-
-    if a.len() < 2 || b.len() < 2 {
-        return 0.0;
-    }
-
+    let mut len1 = 0;
+    let mut len2 = 0;
     let mut a_bigrams: HashMap<(char, char), usize> = HashMap::new();
 
-    for bigram in bigrams(&a) {
-        *a_bigrams.entry(bigram).or_insert(0) += 1;
+    let mut a_no_space = a.chars().filter(|&x| !char::is_whitespace(x)).peekable();
+    while let Some(one) = a_no_space.next() {
+        if let Some(two) = a_no_space.peek() {
+            *a_bigrams.entry((one, *two)).or_insert(0) += 1;
+        }
+        len1 += 1;
+    }
+
+    if len1 < 2 {
+        return (a == b) as u8 as f64;
     }
 
     let mut intersection_size = 0_usize;
 
-    for bigram in bigrams(&b) {
-        a_bigrams.entry(bigram).and_modify(|bi| {
-            if *bi > 0 {
-                *bi -= 1;
-                intersection_size += 1;
-            }
-        });
+    let mut b_no_space = b.chars().filter(|&x| !char::is_whitespace(x)).peekable();
+    while let Some(one) = b_no_space.next() {
+        if let Some(two) = b_no_space.peek() {
+            a_bigrams.entry((one, *two)).and_modify(|bi| {
+                if *bi > 0 {
+                    *bi -= 1;
+                    intersection_size += 1;
+                }
+            });
+        }
+        len2 += 1;
     }
 
-    (2 * intersection_size) as f64 / (a.len() + b.len() - 2) as f64
+    if len2 < 2 {
+        return 0.0;
+    }
+
+    (2 * intersection_size) as f64 / (len1 + len2 - 2) as f64
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn bigrams_iterator() {
-        let mut bi = bigrams("abcde");
-
-        assert_eq!(Some(('a', 'b')), bi.next());
-        assert_eq!(Some(('b', 'c')), bi.next());
-        assert_eq!(Some(('c', 'd')), bi.next());
-        assert_eq!(Some(('d', 'e')), bi.next());
-        assert_eq!(None, bi.next());
-    }
 
     fn assert_hamming_dist(dist: usize, str1: &str, str2: &str) {
         assert_eq!(Ok(dist), hamming(str1, str2));
