@@ -21,10 +21,10 @@ There are also generic versions of the functions for non-string inputs.
 ## Installation
 
 `strsim` is available on [crates.io](https://crates.io/crates/strsim). Add it to
-your `Cargo.toml`:
-```toml
-[dependencies]
-strsim = "0.10.0"
+your project:
+
+```sh
+cargo add strsim
 ```
 
 ## Usage
