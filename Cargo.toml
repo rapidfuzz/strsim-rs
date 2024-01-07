@@ -1,6 +1,6 @@
 [package]
 name = "strsim"
-version = "0.10.0"
+version = "0.10.1"
 authors = ["Danny Guo <danny@dannyguo.com>", "maxbachmann <oss@maxbachmann.de>"]
 description = """
 Implementations of string similarity metrics. Includes Hamming, Levenshtein,
