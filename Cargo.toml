@@ -6,7 +6,7 @@ description = """
 Implementations of string similarity metrics. Includes Hamming, Levenshtein,
 OSA, Damerau-Levenshtein, Jaro, Jaro-Winkler, and Sørensen-Dice.
 """
-edition = "2018"
+edition = "2021"
 license = "MIT"
 readme = "README.md"
 keywords = ["string", "similarity", "Hamming", "Levenshtein", "Jaro"]
