@@ -8,7 +8,7 @@ This project attempts to adhere to [Semantic Versioning](http://semver.org).
 
 ### Fixed
 
-- Drop MSRV down to 1.56 which was mistakenly broken in 0.11.0
+- Drop MSRV down to 1.56 which was mistakenly changed in 0.11.0
 
 ## [0.11.0] - (2024-01-07)
 
