@@ -1,6 +1,7 @@
 //! This library implements string similarity metrics.
 
 #![forbid(unsafe_code)]
+#![warn(rust_2018_idioms)]
 #![allow(
     // these casts are sometimes needed. They restrict the length of input iterators
     // but there isn't really any way around this except for always working with
@@ -9,7 +10,6 @@
     clippy::cast_sign_loss,
     clippy::cast_precision_loss,
     // not practical
-    clippy::needless_pass_by_value,
     clippy::similar_names,
     // noisy
     clippy::missing_errors_doc,
@@ -35,7 +35,7 @@ pub enum StrSimError {
 }
 
 impl Display for StrSimError {
-    fn fmt(&self, fmt: &mut Formatter) -> Result<(), fmt::Error> {
+    fn fmt(&self, fmt: &mut Formatter<'_>) -> Result<(), fmt::Error> {
         let text = match self {
             StrSimError::DifferentLengthArgs => "Differing length arguments provided",
         };
