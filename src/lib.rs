@@ -113,11 +113,7 @@ where
 
     for (i, a_elem) in a.into_iter().enumerate() {
         // prevent integer wrapping
-        let min_bound = if i > search_range {
-            i - search_range
-        } else {
-            0
-        };
+        let min_bound = i.saturating_sub(search_range);
 
         let max_bound = min(b_len, i + search_range + 1);
 
@@ -165,7 +161,7 @@ where
 
 struct StringWrapper<'a>(&'a str);
 
-impl<'a, 'b> IntoIterator for &'a StringWrapper<'b> {
+impl<'b> IntoIterator for &StringWrapper<'b> {
     type Item = char;
     type IntoIter = Chars<'b>;
 
