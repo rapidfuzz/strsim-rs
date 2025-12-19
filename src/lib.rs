@@ -348,7 +348,7 @@ fn flat_index(i: usize, j: usize, width: usize) -> usize {
 /// ```
 pub fn generic_damerau_levenshtein<Elem>(a_elems: &[Elem], b_elems: &[Elem]) -> usize
 where
-    Elem: Eq + Hash + Clone,
+    Elem: Eq + Hash,
 {
     let a_len = a_elems.len();
     let b_len = b_elems.len();
@@ -375,7 +375,7 @@ where
         distances[flat_index(1, j + 1, width)] = j;
     }
 
-    let mut elems: HashMap<Elem, usize> = HashMap::with_capacity(64);
+    let mut elems: HashMap<&Elem, usize> = HashMap::with_capacity(64);
 
     for i in 1..(a_len + 1) {
         let mut db = 0;
@@ -403,7 +403,7 @@ where
             );
         }
 
-        elems.insert(a_elems[i - 1].clone(), i);
+        elems.insert(&a_elems[i - 1], i);
     }
 
     distances[flat_index(a_len + 1, b_len + 1, width)]
