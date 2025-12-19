@@ -26,8 +26,133 @@ use std::convert::TryFrom;
 use std::error::Error;
 use std::fmt::{self, Display, Formatter};
 use std::hash::Hash;
+use std::iter::FusedIterator;
 use std::mem;
 use std::str::Chars;
+
+/// A simple bit vector implementation that uses a slice of `usize` as backing
+struct BitSlice<'a> {
+    data: &'a mut [usize],
+    len: usize,
+}
+
+impl<'a> BitSlice<'a> {
+    fn new(data: &'a mut [usize], len: usize) -> Self {
+        assert!(
+            len <= data.len() * usize::BITS as usize,
+            "BitVec length {} exceeds capacity {} bits (data slice length {} usize words)",
+            len,
+            data.len() * usize::BITS as usize,
+            data.len()
+        );
+        BitSlice { data, len }
+    }
+
+    fn set(&mut self, index: usize) {
+        let word_index = index / (usize::BITS as usize);
+        let bit_index = index % (usize::BITS as usize);
+        self.data[word_index] |= 1 << bit_index;
+    }
+
+    #[allow(unused)]
+    fn get(&self, index: usize) -> bool {
+        let word_index = index / (usize::BITS as usize);
+        let bit_index = index % (usize::BITS as usize);
+        (self.data[word_index] & (1 << bit_index)) != 0
+    }
+
+    fn set_if_not_set(&mut self, index: usize) -> bool {
+        let word_index = index / (usize::BITS as usize);
+        let bit_index = index % (usize::BITS as usize);
+        let mask = 1 << bit_index;
+        let was_set = (self.data[word_index] & mask) != 0;
+        if !was_set {
+            self.data[word_index] |= mask;
+        }
+        was_set
+    }
+
+    pub fn iter(&'a self) -> BitIterator<'a> {
+        BitIterator {
+            bitvec: self,
+            index: 0,
+            register: 0,
+        }
+    }
+}
+
+struct BitIterator<'a> {
+    bitvec: &'a BitSlice<'a>,
+    index: usize,
+    register: usize,
+}
+
+impl<'a> Iterator for BitIterator<'a> {
+    type Item = bool;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.index == self.bitvec.len {
+            return None;
+        }
+
+        let bit_index = self.index % (usize::BITS as usize);
+
+        if bit_index == 0 {
+            let word_index = self.index / (usize::BITS as usize);
+            self.register = self.bitvec.data[word_index];
+        }
+
+        let result = (self.register & (1 << bit_index)) != 0;
+        self.index += 1;
+        Some(result)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let remaining = self.bitvec.len - self.index;
+        (remaining, Some(remaining))
+    }
+}
+
+// Exact size iterator since we can always calculate the remaining length
+impl<'a> ExactSizeIterator for BitIterator<'a> {
+    fn len(&self) -> usize {
+        self.bitvec.len - self.index
+    }
+}
+
+// Optimization, we will return None once we are exhausted
+impl<'a> FusedIterator for BitIterator<'a> {}
+
+const MAX_STACK_BYTES: usize = 2048;
+
+enum HybridBuffer<T: Copy + Default> {
+    Stack([T; MAX_STACK_BYTES / std::mem::size_of::<usize>()]),
+    Heap(Vec<T>),
+}
+
+impl<T: Copy + Default> HybridBuffer<T> {
+    fn new(len: usize) -> Self {
+        const MAX_ELEMENTS: usize = MAX_STACK_BYTES / std::mem::size_of::<usize>();
+        if len <= MAX_ELEMENTS {
+            HybridBuffer::Stack([T::default(); MAX_ELEMENTS])
+        } else {
+            HybridBuffer::Heap(vec![T::default(); len])
+        }
+    }
+
+    #[inline]
+    fn as_mut(&mut self) -> &mut [T] {
+        match self {
+            HybridBuffer::Stack(arr) => &mut arr[..],
+            HybridBuffer::Heap(vec) => vec.as_mut_slice(),
+        }
+    }
+
+    #[inline]
+    fn split_at_mut(&mut self, mid: usize) -> (&mut [T], &mut [T]) {
+        let slice = self.as_mut();
+        slice.split_at_mut(mid)
+    }
+}
 
 #[derive(Debug, PartialEq)]
 pub enum StrSimError {
@@ -106,21 +231,26 @@ where
     search_range = search_range.saturating_sub(1);
 
     // combine memory allocations to reduce runtime
-    let mut flags_memory = vec![false; a_len + b_len];
-    let (a_flags, b_flags) = flags_memory.split_at_mut(a_len);
+    let size_in_usize = ((a_len + b_len) + usize::BITS as usize - 1) / usize::BITS as usize + 2;
+    let mut flags_memory = HybridBuffer::new(size_in_usize);
+    let split_index = (b_len + usize::BITS as usize - 1) / usize::BITS as usize;
+    // Split the pre‑allocated buffer into the two slices.
+    let (a_slice, b_slice) = flags_memory.split_at_mut(split_index);
+
+    // Initialise the BitVecs with the correctly sized slices.
+    let mut a_flags = BitSlice::new(a_slice, a_len);
+    let mut b_flags = BitSlice::new(b_slice, b_len);
 
     let mut matches = 0_usize;
 
     for (i, a_elem) in a.into_iter().enumerate() {
         // prevent integer wrapping
         let min_bound = i.saturating_sub(search_range);
-
         let max_bound = min(b_len, i + search_range + 1);
 
         for (j, b_elem) in b.into_iter().enumerate().take(max_bound) {
-            if min_bound <= j && a_elem == b_elem && !b_flags[j] {
-                a_flags[i] = true;
-                b_flags[j] = true;
+            if min_bound <= j && a_elem == b_elem && !b_flags.set_if_not_set(j) {
+                a_flags.set(i);
                 matches += 1;
                 break;
             }
@@ -131,10 +261,10 @@ where
     if matches != 0 {
         let mut b_iter = b_flags.iter().zip(b);
         for (a_flag, ch1) in a_flags.iter().zip(a) {
-            if *a_flag {
+            if a_flag {
                 loop {
                     if let Some((b_flag, ch2)) = b_iter.next() {
-                        if !*b_flag {
+                        if !b_flag {
                             continue;
                         }
 
@@ -234,7 +364,12 @@ where
 {
     let b_len = b.into_iter().count();
 
-    let mut cache: Vec<usize> = (1..b_len + 1).collect();
+    let mut buffer = HybridBuffer::new(b_len);
+
+    let (cache, _) = buffer.split_at_mut(b_len);
+    for (j, _) in b.into_iter().enumerate() {
+        cache[j] = j + 1;
+    }
 
     let mut result = b_len;
 
@@ -297,9 +432,20 @@ pub fn osa_distance(a: &str, b: &str) -> usize {
     let b_len = b.chars().count();
     // 0..=b_len behaves like 0..b_len.saturating_add(1) which could be a different size
     // this leads to significantly worse code gen when swapping the vectors below
-    let mut prev_two_distances: Vec<usize> = (0..b_len + 1).collect();
-    let mut prev_distances: Vec<usize> = (0..b_len + 1).collect();
-    let mut curr_distances: Vec<usize> = vec![0; b_len + 1];
+    let mut buffer = HybridBuffer::new((b_len + 1) * 3);
+    let (mut prev_two_distances, rem) = buffer.split_at_mut(b_len + 1);
+    let (mut prev_distances, rem) = rem.split_at_mut(b_len + 1);
+    let mut curr_distances = rem.split_at_mut(b_len + 1).0;
+    // Initialise the three distance slices so that each element contains its index.
+    for i in 0..prev_two_distances.len() {
+        prev_two_distances[i] = i;
+    }
+    for i in 0..prev_distances.len() {
+        prev_distances[i] = i;
+    }
+    for i in 0..curr_distances.len() {
+        curr_distances[i] = i;
+    }
 
     let mut prev_a_char = char::MAX;
     let mut prev_b_char = char::MAX;
@@ -361,7 +507,8 @@ where
     }
 
     let width = a_len + 2;
-    let mut distances = vec![0; (a_len + 2) * (b_len + 2)];
+    let mut buffer = HybridBuffer::new((a_len + 2) * (b_len + 2));
+    let distances = buffer.split_at_mut((a_len + 2) * (b_len + 2)).0;
     let max_distance = a_len + b_len;
     distances[0] = max_distance;
 
@@ -617,11 +764,19 @@ where
     let mut last_row_id = HybridGrowingHashmapChar::<RowId>::default();
 
     let size = len2 + 2;
-    let mut fr = vec![max_val; size];
-    let mut r1 = vec![max_val; size];
-    let mut r: Vec<isize> = (max_val..max_val + 1)
-        .chain(0..(size - 1) as isize)
-        .collect();
+    let mut buffer: HybridBuffer<isize> = HybridBuffer::new(size * 3);
+
+    let (fr, rem) = buffer.split_at_mut(size);
+    let (mut r1, mut r) = rem.split_at_mut(size);
+    r = &mut r[..size];
+
+    fr.iter_mut().for_each(|x| *x = max_val);
+    r1.iter_mut().for_each(|x| *x = max_val);
+
+    r[0] = max_val;
+    for i in 1..size {
+        r[i] = (i - 1) as isize;
+    }
 
     for (i, ch1) in s1.enumerate().map(|(i, ch1)| (i + 1, ch1)) {
         mem::swap(&mut r, &mut r1);

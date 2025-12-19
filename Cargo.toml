@@ -16,3 +16,19 @@ repository = "https://github.com/rapidfuzz/strsim-rs"
 documentation = "https://docs.rs/strsim/"
 exclude = ["/.github", "/dev"]
 categories = ["text-processing"]
+
+[dev-dependencies]
+criterion = "0.8"
+
+[[bench]]
+name = "benches"
+harness = false
+path = "benches/benches.rs"
+
+[profile.bench]
+opt-level = 3
+debug = false
+lto = "fat"
+codegen-units = 1
+incremental = false
+rpath = false
