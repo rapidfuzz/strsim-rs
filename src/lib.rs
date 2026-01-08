@@ -528,6 +528,7 @@ where
     }
 
     fn grow(&mut self, min_used: i32) {
+        debug_assert_ne!(self.mask, -1, "GrowingHashmapChar is not allocated");
         let mut new_size = self.mask + 1;
         while new_size <= min_used {
             new_size <<= 1;
@@ -1217,6 +1218,14 @@ mod tests {
     }
 
     #[test]
+    fn generic_damerau_levenshtein_with_empty() {
+        let a = "damerau_levenshtein";
+        let a_chars: Vec<char> = a.chars().collect();
+        assert_eq!(generic_damerau_levenshtein(&a_chars, &[]), a.len());
+        assert_eq!(generic_damerau_levenshtein(&[], &a_chars), a.len());
+    }
+
+    #[test]
     fn normalized_damerau_levenshtein_diff_short() {
         assert_delta!(
             0.27272,
@@ -1299,5 +1308,54 @@ mod tests {
             0.77419,
             sorensen_dice("this has one extra word", "this has one word")
         );
+    }
+
+    #[test]
+    #[should_panic = "GrowingHashmapChar is not allocated"]
+    fn growinghashmapchar_grow_panic() {
+        let mut map: GrowingHashmapChar<u32> = GrowingHashmapChar::<u32>::default();
+        map.grow(8);
+    }
+
+    #[test]
+    fn growinghashmapchar_grow() {
+        let mut map: GrowingHashmapChar<u32> = GrowingHashmapChar::<u32>::default();
+        map.allocate();
+        assert_eq!(map.mask, 7);
+        
+        map.grow(8);
+        assert_eq!(map.mask, 15);
+    }
+
+    #[test]
+    fn growinghashmapchar_get_mut() {
+        let mut map: GrowingHashmapChar<u32> = GrowingHashmapChar::<u32>::default();
+        for i in 0..10 {
+            *map.get_mut(10 - i) = (10 - i) * 10;
+        }
+        for i in 0..10 {
+            assert_eq!(map.get(i), i * 10);
+        }
+        assert_eq!(map.mask, 15);
+    }
+
+    #[test]
+    fn growinghashmapchar_lookup_with_perturb_shift() {
+        let mut map: GrowingHashmapChar<i32> = GrowingHashmapChar::default();
+
+        let key1 = 0b0000_0000;
+        let key2 = 0b0010_0000;
+        let key3 = 0b0000_1000;
+
+        *map.get_mut(key1) = 100;
+        *map.get_mut(key2) = 200;
+
+        assert_eq!(map.get(key2), 200);
+
+        *map.get_mut(key3) = 300;
+
+        assert_eq!(map.get(key1), 100);
+        assert_eq!(map.get(key2), 200);
+        assert_eq!(map.get(key3), 300);
     }
 }
