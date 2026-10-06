@@ -81,6 +81,17 @@ fn main() {
 }
 ```
 
+
+## Unicode behavior
+
+String-based functions in this crate operate on Rust `char` values, so comparisons are performed over Unicode scalar values rather than UTF-8 bytes.
+
+Canonically equivalent strings can still have different scalar-value sequences. If canonical equivalence matters, normalize both inputs to the same Unicode normalization form before calculating the distance.
+
+A user-perceived character can also contain multiple Unicode scalar values. Applications that require one visible character to count as one edit may therefore need grapheme-cluster segmentation before comparison.
+
+For additional background on Unicode normalization, grapheme segmentation, and text transformations in edit-distance processing, see [Unicode text transformations and edit distance](https://www.levenshtein.net/unicode-text-transformations).
+
 ## Contributing
 
 If you don't want to install Rust itself, you can run `$ ./dev` for a
