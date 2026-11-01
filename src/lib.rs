@@ -725,7 +725,13 @@ pub fn sorensen_dice(a: &str, b: &str) -> f64 {
         return 1.0;
     }
 
-    if a.len() < 2 || b.len() < 2 {
+    // Count characters, not bytes: the bigrams below are built from chars,
+    // so a byte length over-counts every non-ASCII character and skews the
+    // denominator ("ö" is two bytes but one character).
+    let a_len = a.chars().count();
+    let b_len = b.chars().count();
+
+    if a_len < 2 || b_len < 2 {
         return 0.0;
     }
 
@@ -746,7 +752,7 @@ pub fn sorensen_dice(a: &str, b: &str) -> f64 {
         });
     }
 
-    (2 * intersection_size) as f64 / (a.len() + b.len() - 2) as f64
+    (2 * intersection_size) as f64 / (a_len + b_len - 2) as f64
 }
 
 #[cfg(test)]
@@ -766,6 +772,16 @@ mod tests {
                 );
             }
         };
+    }
+
+
+    #[test]
+    fn sorensen_dice_unicode_uses_character_count() {
+        // Byte lengths put these well below the expected value:
+        // "Müller" is 6 characters but 7 bytes.
+        assert_delta!(0.66667, sorensen_dice("öööö", "öööx"));
+        assert_delta!(0.90909, sorensen_dice("Müller", "Müllers"));
+        assert_delta!(1.0, sorensen_dice("ção", "ção"));
     }
 
     #[test]
